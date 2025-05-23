@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+
 
 const CardGenerator = () => {
   const [cardTexts, setCardTexts] = useState('');
@@ -7,8 +8,9 @@ const CardGenerator = () => {
   const [customBgColor, setCustomBgColor] = useState('#6366f1');
   const [customTextColor, setCustomTextColor] = useState('#ffffff');
   const [bottomText, setBottomText] = useState('Track Against Humanity');
-  const [iconType, setIconType] = useState('triangle'); // 'warning', 'thinking', 'block', 'emoji'
+  const [iconType, setIconType] = useState('triangle');
   const [customEmoji, setCustomEmoji] = useState('🎮');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const parseCardTexts = () => {
     return cardTexts.split('\n').filter(text => text.trim());
@@ -20,6 +22,13 @@ const CardGenerator = () => {
     return { bg: customBgColor, text: customTextColor, border: customTextColor };
   };
 
+  // Auto-expand when user starts typing
+  useEffect(() => {
+    if (cardTexts.trim() && !isExpanded) {
+      setIsExpanded(true);
+    }
+  }, [cardTexts]);
+
   const drawIcon = (ctx, x, y, size, color) => {
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
@@ -27,7 +36,6 @@ const CardGenerator = () => {
     
     switch (iconType) {
       case 'warning':
-        // Warning triangle
         ctx.beginPath();
         ctx.moveTo(x + size/2, y + 5);
         ctx.lineTo(x + 5, y + size - 5);
@@ -35,7 +43,6 @@ const CardGenerator = () => {
         ctx.closePath();
         ctx.stroke();
         
-        // Exclamation mark
         ctx.beginPath();
         ctx.moveTo(x + size/2, y + size/3);
         ctx.lineTo(x + size/2, y + size * 0.6);
@@ -47,7 +54,6 @@ const CardGenerator = () => {
         break;
         
       case 'thinking':
-        // Thought bubble (cloud-like shape)
         const drawCloud = () => {
           ctx.beginPath();
           ctx.arc(x + size * 0.3, y + size * 0.4, size * 0.2, 0, Math.PI * 2);
@@ -57,7 +63,6 @@ const CardGenerator = () => {
           ctx.arc(x + size * 0.4, y + size * 0.6, size * 0.2, 0, Math.PI * 2);
           ctx.fill();
           
-          // Small bubbles
           ctx.beginPath();
           ctx.arc(x + size * 0.2, y + size * 0.85, size * 0.08, 0, Math.PI * 2);
           ctx.fill();
@@ -69,7 +74,6 @@ const CardGenerator = () => {
         break;
         
       case 'block':
-        // Blocked/prohibited sign
         ctx.beginPath();
         ctx.arc(x + size/2, y + size/2, size/2 - 3, 0, Math.PI * 2);
         ctx.stroke();
@@ -163,31 +167,25 @@ const CardGenerator = () => {
     const colors = getCardColors();
     const borderRadius = 20;
     
-    // Clear canvas with transparent background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Create clipping path for rounded corners
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(0, 0, canvas.width, canvas.height, borderRadius);
     ctx.clip();
     
-    // Background
     ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Inner border
     ctx.strokeStyle = colors.border;
     ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.roundRect(15, 15, canvas.width - 30, canvas.height - 30, borderRadius - 5);
     ctx.stroke();
     
-    // Card text
     ctx.fillStyle = colors.text;
     ctx.font = 'bold 42px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     
-    // Word wrap function
     const wrapText = (text, x, y, maxWidth, lineHeight) => {
       const words = text.split(' ');
       let line = '';
@@ -210,10 +208,8 @@ const CardGenerator = () => {
       return currentY;
     };
     
-    // Draw card text
     const textEndY = wrapText(text, 50, 100, 600, 55);
     
-    // Logo area
     drawIcon(ctx, 50, canvas.height - 100, 30, colors.text);
     
     ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
@@ -222,13 +218,11 @@ const CardGenerator = () => {
     
     ctx.restore();
     
-    // Create a new canvas for the final image with transparency
     const finalCanvas = document.createElement('canvas');
     const finalCtx = finalCanvas.getContext('2d');
     finalCanvas.width = canvas.width;
     finalCanvas.height = canvas.height;
     
-    // Draw the rounded card onto the final canvas
     finalCtx.save();
     finalCtx.beginPath();
     finalCtx.roundRect(0, 0, finalCanvas.width, finalCanvas.height, borderRadius);
@@ -236,7 +230,6 @@ const CardGenerator = () => {
     finalCtx.drawImage(canvas, 0, 0);
     finalCtx.restore();
     
-    // Download
     const link = document.createElement('a');
     const fileName = text
       .replace(/[^a-zA-Z0-9\s]/g, '')
@@ -294,10 +287,8 @@ const CardGenerator = () => {
           </p>
         </div>
         
-        {/* Response area - just empty space */}
         <div style={{ height: responseHeight }} />
         
-        {/* Logo/Brand area */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <IconPreview size={20} color={colors.text} />
           <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.02em' }}>
@@ -311,85 +302,125 @@ const CardGenerator = () => {
   const styles = {
     container: {
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-      padding: '40px 20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      background: '#ffffff',
+      fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     },
-    maxWidth: {
-      maxWidth: '1400px',
+    hero: {
+      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      padding: '80px 20px 60px',
+      textAlign: 'center',
+      color: '#fff',
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    heroContent: {
+      maxWidth: '800px',
       margin: '0 auto',
+      position: 'relative',
+      zIndex: 1,
     },
     title: {
-      fontSize: '56px',
+      fontSize: 'clamp(2.5rem, 5vw, 3.5rem)',
       fontWeight: '800',
-      marginBottom: '40px',
-      textAlign: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      marginBottom: '24px',
+      letterSpacing: '-0.03em',
+      lineHeight: '1.2',
+      background: 'linear-gradient(to right, #60a5fa, #a78bfa)',
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
-      letterSpacing: '-1px',
+    },
+    subtitle: {
+      fontSize: 'clamp(1.125rem, 2vw, 1.25rem)',
+      fontWeight: '400',
+      opacity: '0.9',
+      lineHeight: '1.6',
+      marginBottom: '40px',
+      color: '#e2e8f0',
+    },
+    appContainer: {
+      background: '#f8fafc',
+      borderTop: '1px solid #e2e8f0',
+      transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+      overflow: 'hidden',
+    },
+    appContainerExpanded: {
+      minHeight: '100vh',
+    },
+    maxWidth: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '40px 20px',
     },
     settingsCard: {
       backgroundColor: '#fff',
-      borderRadius: '20px',
-      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.08)',
+      borderRadius: '24px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
       padding: '40px',
       marginBottom: '40px',
+      transition: 'all 0.3s ease',
+      border: '1px solid #e2e8f0',
     },
     settingsTitle: {
       fontSize: '28px',
       fontWeight: '700',
-      marginBottom: '24px',
-      color: '#1a202c',
+      marginBottom: '32px',
+      color: '#0f172a',
+      letterSpacing: '-0.02em',
     },
     label: {
       display: 'block',
       fontSize: '14px',
       fontWeight: '600',
       marginBottom: '8px',
-      color: '#4a5568',
-      textTransform: 'uppercase',
-      letterSpacing: '0.05em',
+      color: '#475569',
+      letterSpacing: '0.01em',
     },
     textarea: {
       width: '100%',
       height: '140px',
       padding: '16px',
       border: '2px solid #e2e8f0',
-      borderRadius: '12px',
+      borderRadius: '16px',
       fontSize: '15px',
       resize: 'vertical',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
       boxSizing: 'border-box',
-      transition: 'border-color 0.2s ease',
+      transition: 'all 0.2s ease',
       outline: 'none',
+      backgroundColor: '#f8fafc',
     },
     input: {
       width: '100%',
       padding: '12px 16px',
       border: '2px solid #e2e8f0',
-      borderRadius: '12px',
+      borderRadius: '16px',
       fontSize: '15px',
-      backgroundColor: '#fff',
-      transition: 'border-color 0.2s ease',
+      backgroundColor: '#f8fafc',
+      transition: 'all 0.2s ease',
       outline: 'none',
       boxSizing: 'border-box',
     },
     grid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: '24px',
+      gap: '32px',
     },
     select: {
       width: '100%',
       padding: '12px 16px',
       border: '2px solid #e2e8f0',
-      borderRadius: '12px',
+      borderRadius: '16px',
       fontSize: '15px',
-      backgroundColor: '#fff',
+      backgroundColor: '#f8fafc',
       cursor: 'pointer',
-      transition: 'border-color 0.2s ease',
+      transition: 'all 0.2s ease',
       outline: 'none',
+      appearance: 'none',
+      backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%23475569\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")',
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'right 12px center',
+      backgroundSize: '16px',
+      paddingRight: '40px',
     },
     range: {
       width: '100%',
@@ -398,32 +429,34 @@ const CardGenerator = () => {
       borderRadius: '3px',
       background: '#e2e8f0',
       outline: 'none',
+      WebkitAppearance: 'none',
+      appearance: 'none',
     },
     button: {
       width: '100%',
-      padding: '14px 24px',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '16px 28px',
+      background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
       color: '#fff',
       border: 'none',
-      borderRadius: '12px',
+      borderRadius: '16px',
       fontSize: '16px',
       fontWeight: '600',
       cursor: 'pointer',
-      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-      boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
+      transition: 'all 0.2s ease',
+      boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
     },
     buttonDisabled: {
-      background: 'linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%)',
+      background: 'linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%)',
       cursor: 'not-allowed',
       boxShadow: 'none',
     },
     buttonSecondary: {
-      marginTop: '16px',
-      padding: '10px 20px',
-      background: 'rgba(255, 255, 255, 0.9)',
-      color: '#4a5568',
+    marginTop: '16px',
+      padding: '12px 24px',
+      background: '#fff',
+      color: '#475569',
       border: '2px solid #e2e8f0',
-      borderRadius: '12px',
+      borderRadius: '16px',
       fontSize: '14px',
       fontWeight: '600',
       cursor: 'pointer',
@@ -434,6 +467,8 @@ const CardGenerator = () => {
       overflowX: 'auto',
       padding: '20px 0',
       WebkitOverflowScrolling: 'touch',
+      scrollbarWidth: 'thin',
+      scrollbarColor: '#cbd5e0 transparent',
     },
     cardGrid: {
       display: 'flex',
@@ -448,7 +483,7 @@ const CardGenerator = () => {
     },
     emptyState: {
       textAlign: 'center',
-      color: '#718096',
+      color: '#64748b',
       marginTop: '60px',
       fontSize: '20px',
       fontWeight: '500',
@@ -462,9 +497,10 @@ const CardGenerator = () => {
       width: '60px',
       height: '40px',
       border: '2px solid #e2e8f0',
-      borderRadius: '8px',
+      borderRadius: '12px',
       cursor: 'pointer',
       padding: '4px',
+      background: '#f8fafc',
     },
     iconGrid: {
       display: 'flex',
@@ -472,208 +508,367 @@ const CardGenerator = () => {
       marginTop: '8px',
     },
     iconOption: {
-      padding: '8px',
+      padding: '10px',
       border: '2px solid #e2e8f0',
-      borderRadius: '8px',
+      borderRadius: '12px',
       cursor: 'pointer',
-      background: '#fff',
+      background: '#f8fafc',
       transition: 'all 0.2s ease',
     },
     iconOptionSelected: {
-      borderColor: '#667eea',
-      backgroundColor: '#f0f4ff',
+      borderColor: '#3b82f6',
+      backgroundColor: '#eff6ff',
+    },
+    contentSection: {
+      padding: '100px 20px',
+      borderTop: '1px solid #e2e8f0',
+    },
+    contentMaxWidth: {
+      maxWidth: '1000px',
+      margin: '0 auto',
+    },
+    sectionTitle: {
+      fontSize: 'clamp(2rem, 4vw, 2.5rem)',
+      fontWeight: '700',
+      marginBottom: '32px',
+      color: '#0f172a',
+      letterSpacing: '-0.02em',
+      lineHeight: '1.2',
+    },
+    sectionText: {
+      fontSize: '1.125rem',
+      lineHeight: '1.8',
+      color: '#475569',
+      marginBottom: '24px',
+    },
+    featureGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: '40px',
+      marginTop: '60px',
+    },
+    featureCard: {
+      padding: '40px',
+      background: '#fff',
+      borderRadius: '24px',
+      transition: 'all 0.3s ease',
+      border: '1px solid #e2e8f0',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+    },
+    featureIcon: {
+      fontSize: '48px',
+      marginBottom: '24px',
+    },
+    featureTitle: {
+      fontSize: '24px',
+      fontWeight: '600',
+      marginBottom: '16px',
+      color: '#0f172a',
+      letterSpacing: '-0.01em',
+    },
+    featureText: {
+      fontSize: '16px',
+      lineHeight: '1.6',
+      color: '#475569',
     },
   };
 
   return (
     <div style={styles.container}>
-      <div style={styles.maxWidth}>
-        <h1 style={styles.title}>Track Against Humanity Generator</h1>
-        
-        <div style={styles.settingsCard}>
-          <h2 style={styles.settingsTitle}>Card Settings</h2>
-          
-          <div style={{ marginBottom: '32px' }}>
-            <label style={styles.label}>
-              Card Texts (one per line)
-            </label>
-            <textarea
-              value={cardTexts}
-              onChange={(e) => setCardTexts(e.target.value)}
-              placeholder="I love the smell of _____ in the morning
-Life is like a box of _____
-The secret to happiness is _____"
-              style={styles.textarea}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-            />
-          </div>
-          
-          <div style={styles.grid}>
-            <div>
+      {/* Hero Section */}
+      <section style={styles.hero}>
+        <div style={styles.heroContent}>
+          <h1 style={styles.title}>Create Engaging Retro Cards in Seconds</h1>
+          <p style={styles.subtitle}>
+            Transform your retrospectives with custom Cards Against Humanity-style prompts. 
+            Perfect for breaking the ice, sparking discussions, and making team meetings more fun and productive.
+          </p>
+        </div>
+      </section>
+
+      {/* App Section */}
+      <section style={{
+        ...styles.appContainer,
+        ...(isExpanded ? styles.appContainerExpanded : { maxHeight: '400px' })
+      }}>
+        <div style={styles.maxWidth}>
+          <div style={styles.settingsCard}>
+            <h2 style={styles.settingsTitle}>Start Creating Your Retro Cards</h2>
+            
+            <div style={{ marginBottom: '32px' }}>
               <label style={styles.label}>
-                Card Style
+                Card Prompts (one per line)
               </label>
-              <select
-                value={cardType}
-                onChange={(e) => setCardType(e.target.value)}
-                style={styles.select}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
+              <textarea
+                value={cardTexts}
+                onChange={(e) => setCardTexts(e.target.value)}
+                placeholder="Our biggest win this sprint was _____
+The team's superpower is _____
+If our project was a movie, it would be _____"
+                style={styles.textarea}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#667eea';
+                  setIsExpanded(true);
+                }}
                 onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-              >
-                <option value="black">Classic Black</option>
-                <option value="white">Classic White</option>
-                <option value="custom">Custom Colors</option>
-              </select>
+              />
             </div>
             
-            {cardType === 'custom' && (
-              <div>
-                <label style={styles.label}>
-                  Custom Colors
-                </label>
-                <div style={styles.colorPicker}>
+            {isExpanded && (
+              <div style={styles.grid}>
+                <div>
+                  <label style={styles.label}>
+                    Card Style
+                  </label>
+                  <select
+                    value={cardType}
+                    onChange={(e) => setCardType(e.target.value)}
+                    style={styles.select}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  >
+                    <option value="black">Classic Black</option>
+                    <option value="white">Classic White</option>
+                    <option value="custom">Custom Colors</option>
+                  </select>
+                </div>
+                
+                {cardType === 'custom' && (
                   <div>
-                    <label style={{ fontSize: '12px', color: '#718096' }}>Background</label>
-                    <input
-                      type="color"
-                      value={customBgColor}
-                      onChange={(e) => setCustomBgColor(e.target.value)}
-                      style={styles.colorInput}
-                    />
+                    <label style={styles.label}>
+                      Custom Colors
+                    </label>
+                    <div style={styles.colorPicker}>
+                      <div>
+                        <label style={{ fontSize: '12px', color: '#718096' }}>Background</label>
+                        <input
+                          type="color"
+                          value={customBgColor}
+                          onChange={(e) => setCustomBgColor(e.target.value)}
+                          style={styles.colorInput}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: '12px', color: '#718096' }}>Text</label>
+                        <input
+                          type="color"
+                          value={customTextColor}
+                          onChange={(e) => setCustomTextColor(e.target.value)}
+                          style={styles.colorInput}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ fontSize: '12px', color: '#718096' }}>Text</label>
-                    <input
-                      type="color"
-                      value={customTextColor}
-                      onChange={(e) => setCustomTextColor(e.target.value)}
-                      style={styles.colorInput}
-                    />
+                )}
+                
+                <div>
+                  <label style={styles.label}>
+                    Bottom Text
+                  </label>
+                  <input
+                    type="text"
+                    value={bottomText}
+                    onChange={(e) => setBottomText(e.target.value)}
+                    placeholder="Enter custom text"
+                    style={styles.input}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  />
+                </div>
+                
+                <div>
+                  <label style={styles.label}>
+                    Icon Style
+                  </label>
+                  <div style={styles.iconGrid}>
+                    {['warning', 'thinking', 'block', 'emoji'].map((icon) => (
+                      <button
+                        key={icon}
+                        onClick={() => setIconType(icon)}
+                        style={{
+                          ...styles.iconOption,
+                          ...(iconType === icon ? styles.iconOptionSelected : {}),
+                        }}
+                        title={icon.charAt(0).toUpperCase() + icon.slice(1)}
+                      >
+                        <IconPreview type={icon} size={16} color={iconType === icon ? '#667eea' : '#718096'} />
+                      </button>
+                    ))}
                   </div>
+                  {iconType === 'emoji' && (
+                    <input
+                      type="text"
+                      value={customEmoji}
+                      onChange={(e) => setCustomEmoji(e.target.value.slice(0, 2))}
+                      placeholder="Enter emoji"
+                      style={{ ...styles.input, marginTop: '8px', fontSize: '20px', textAlign: 'center' }}
+                      maxLength="2"
+                    />
+                  )}
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <button
+                    onClick={downloadAllCards}
+                    disabled={!parseCardTexts().length}
+                    style={{
+                      ...styles.button,
+                      ...(parseCardTexts().length === 0 ? styles.buttonDisabled : {}),
+                    }}
+                    onMouseEnter={(e) => {
+                      if (parseCardTexts().length > 0) {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (parseCardTexts().length > 0) {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                      }
+                    }}
+                  >
+                    Download All Cards
+                  </button>
                 </div>
               </div>
             )}
-            
-            <div>
-              <label style={styles.label}>
-                Bottom Text
-              </label>
-              <input
-                type="text"
-                value={bottomText}
-                onChange={(e) => setBottomText(e.target.value)}
-                placeholder="Enter custom text"
-                style={styles.input}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-              />
-            </div>
-            
-            <div>
-              <label style={styles.label}>
-                Icon Style
-              </label>
-              <div style={styles.iconGrid}>
-                {['warning', 'thinking', 'block', 'emoji'].map((icon) => (
-                  <button
-                    key={icon}
-                    onClick={() => setIconType(icon)}
-                    style={{
-                      ...styles.iconOption,
-                      ...(iconType === icon ? styles.iconOptionSelected : {}),
-                    }}
-                    title={icon.charAt(0).toUpperCase() + icon.slice(1)}
-                  >
-                    <IconPreview type={icon} size={16} color={iconType === icon ? '#667eea' : '#718096'} />
-                  </button>
+          </div>
+          
+          {parseCardTexts().length > 0 && (
+            <div style={styles.cardContainer}>
+              <div style={styles.cardGrid}>
+                {parseCardTexts().map((text, index) => (
+                  <div key={index} style={styles.cardWrapper}>
+                    <CardPreview text={text} index={index} />
+                    <button
+                      onClick={() => downloadCard(text, index)}
+                      style={styles.buttonSecondary}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = 'rgba(255, 255, 255, 1)';
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    >
+                      Download This Card
+                    </button>
+                  </div>
                 ))}
               </div>
-              {iconType === 'emoji' && (
-                <input
-                  type="text"
-                  value={customEmoji}
-                  onChange={(e) => setCustomEmoji(e.target.value.slice(0, 2))}
-                  placeholder="Enter emoji"
-                  style={{ ...styles.input, marginTop: '8px', fontSize: '20px', textAlign: 'center' }}
-                  maxLength="2"
-                />
-              )}
             </div>
-            
-            <div>
-              <label style={styles.label}>
-                Response Space: {responseSpace}%
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="50"
-                value={responseSpace}
-                onChange={(e) => setResponseSpace(Number(e.target.value))}
-                style={styles.range}
-              />
+          )}
+          
+          {parseCardTexts().length === 0 && !isExpanded && (
+            <div style={styles.emptyState}>
+              <p>✨ Start typing your retro prompts above to see card previews</p>
             </div>
-            
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button
-                onClick={downloadAllCards}
-                disabled={!parseCardTexts().length}
-                style={{
-                  ...styles.button,
-                  ...(parseCardTexts().length === 0 ? styles.buttonDisabled : {}),
-                }}
-                onMouseEnter={(e) => {
-                  if (parseCardTexts().length > 0) {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (parseCardTexts().length > 0) {
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
-                  }
-                }}
-              >
-                Download All Cards
-              </button>
+          )}
+        </div>
+      </section>
+
+      {/* Content Sections for SEO */}
+      <section style={styles.contentSection}>
+        <div style={styles.contentMaxWidth}>
+          <h2 style={styles.sectionTitle}>Why Use Custom Retro Cards?</h2>
+          <p style={styles.sectionText}>
+            Traditional retrospectives can sometimes feel repetitive or fail to engage all team members. 
+            By introducing custom retro cards inspired by Cards Against Humanity's format, you create 
+            a playful atmosphere that encourages honest feedback and creative thinking.
+          </p>
+          <p style={styles.sectionText}>
+            These cards work as conversation starters, helping teams break through communication barriers 
+            and discuss both successes and challenges in a fun, non-threatening way. The fill-in-the-blank 
+            format makes it easy for everyone to participate, regardless of their communication style.
+          </p>
+        </div>
+      </section>
+
+      <section style={{ ...styles.contentSection, background: '#f7fafc' }}>
+        <div style={styles.contentMaxWidth}>
+          <h2 style={styles.sectionTitle}>Perfect for Every Retro Format</h2>
+          <div style={styles.featureGrid}>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>🚀</div>
+              <h3 style={styles.featureTitle}>Sprint Retrospectives</h3>
+              <p style={styles.featureText}>
+                Create cards that help teams reflect on sprint achievements, blockers, and improvements. 
+                Examples: "Our MVP of the sprint was _____" or "The biggest surprise this sprint was _____"
+              </p>
+            </div>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>🎯</div>
+              <h3 style={styles.featureTitle}>Project Post-Mortems</h3>
+              <p style={styles.featureText}>
+                Design thoughtful prompts for deeper project analysis. Try: "If we could redo one thing, 
+                it would be _____" or "The unsung hero of this project was _____"
+              </p>
+            </div>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>🌟</div>
+              <h3 style={styles.featureTitle}>Team Building</h3>
+              <p style={styles.featureText}>
+                Foster team bonding with lighthearted prompts. Use: "Our team's secret weapon is _____" 
+                or "If our team had a theme song, it would be _____"
+              </p>
             </div>
           </div>
         </div>
-        
-        <div style={styles.cardContainer}>
-          <div style={styles.cardGrid}>
-            {parseCardTexts().map((text, index) => (
-              <div key={index} style={styles.cardWrapper}>
-                <CardPreview text={text} index={index} />
-                <button
-                  onClick={() => downloadCard(text, index)}
-                  style={styles.buttonSecondary}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = 'rgba(255, 255, 255, 1)';
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = 'rgba(255, 255, 255, 0.9)';
-                    e.target.style.transform = 'translateY(0)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  Download This Card
-                </button>
-              </div>
-            ))}
-          </div>
+      </section>
+
+      <section style={styles.contentSection}>
+        <div style={styles.contentMaxWidth}>
+          <h2 style={styles.sectionTitle}>How to Run an Engaging Card-Based Retro</h2>
+          <p style={styles.sectionText}>
+            <strong>1. Prepare Your Cards:</strong> Create 5-10 prompts tailored to your team's current 
+            situation. Mix serious reflection questions with lighter, fun prompts to maintain energy.
+          </p>
+          <p style={styles.sectionText}>
+            <strong>2. Set the Stage:</strong> Print the cards or share them digitally. Explain that 
+            this is a safe space for honest feedback wrapped in a fun format.
+          </p>
+          <p style={styles.sectionText}>
+            <strong>3. Facilitate Discussion:</strong> Have team members take turns drawing cards and 
+            completing the prompts. Encourage elaboration and group discussion on each response.
+          </p>
+          <p style={styles.sectionText}>
+            <strong>4. Capture Insights:</strong> Document key themes and action items that emerge from 
+            the card discussions. The playful format often reveals deeper insights than traditional formats.
+          </p>
         </div>
-        
-        {parseCardTexts().length === 0 && (
-          <div style={styles.emptyState}>
-            <p>✨ Enter some card texts above to see previews</p>
-          </div>
-        )}
-      </div>
+      </section>
+
+      <section style={{ ...styles.contentSection, background: '#f7fafc' }}>
+        <div style={styles.contentMaxWidth}>
+          <h2 style={styles.sectionTitle}>Customization Options</h2>
+          <p style={styles.sectionText}>
+            Our retro card generator offers complete customization to match your team's style and needs:
+          </p>
+          <ul style={{ ...styles.sectionText, paddingLeft: '24px' }}>
+            <li>Choose between classic black cards, white cards, or create custom color schemes</li>
+            <li>Add your team or company name to brand the cards</li>
+            <li>Select from different icon styles or add custom emojis</li>
+            <li>Adjust the response space for longer or shorter answers</li>
+            <li>Download individual cards or entire sets for printing or digital sharing</li>
+          </ul>
+        </div>
+      </section>
+
+      <section style={styles.contentSection}>
+        <div style={styles.contentMaxWidth}>
+          <h2 style={styles.sectionTitle}>Start Creating Better Retros Today</h2>
+          <p style={styles.sectionText}>
+            Ready to transform your team retrospectives? Simply start typing your prompts in the 
+            generator above, customize the appearance to match your team's personality, and download 
+            your cards. Whether you're facilitating remote or in-person retros, these cards will help 
+            create memorable, productive sessions that your team will actually look forward to.
+          </p>
+        </div>
+      </section>
     </div>
   );
 };
