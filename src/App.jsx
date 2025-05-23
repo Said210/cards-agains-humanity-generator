@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import { createRoot } from 'react-dom/client';
 
 const CardGenerator = () => {
   const [cardTexts, setCardTexts] = useState('');
@@ -191,88 +191,100 @@ const CardGenerator = () => {
     }
   };
 
-  const downloadCard = (text, index) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    canvas.width = 700;
-    canvas.height = 1000;
-    
+  const CardPreview = ({ text, index, forExport = false }) => {
     const colors = getCardColors();
-    const borderRadius = 20;
+    const responseHeight = `${responseSpace}%`;
+    const cardRef = useRef(null);
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(0, 0, canvas.width, canvas.height, borderRadius);
-    ctx.clip();
-    
-    ctx.fillStyle = colors.bg;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.strokeStyle = colors.border;
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.roundRect(15, 15, canvas.width - 30, canvas.height - 30, borderRadius - 5);
-    ctx.stroke();
-    
-    ctx.fillStyle = colors.text;
-    ctx.font = 'bold 42px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    
-    const wrapText = (text, x, y, maxWidth, lineHeight) => {
-      const words = text.split(' ');
-      let line = '';
-      let currentY = y;
-      
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = ctx.measureText(testLine);
-        const testWidth = metrics.width;
-        
-        if (testWidth > maxWidth && n > 0) {
-          ctx.fillText(line, x, currentY);
-          line = words[n] + ' ';
-          currentY += lineHeight;
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line, x, currentY);
-      return currentY;
+    const cardStyle = {
+      position: 'relative',
+      background: colors.bg,
+      color: colors.text,
+      borderRadius: forExport ? '20px' : '12px',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+      width: forExport ? '700px' : '320px',
+      height: forExport ? '1000px' : '450px',
+      padding: forExport ? '28px 50px' : '28px',
+      border: `${forExport ? '6px' : '3px'} solid ${colors.border}`,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      display: 'flex',
+      flexDirection: 'column',
+      transition: 'all 0.3s ease',
+      cursor: forExport ? 'default' : 'pointer',
     };
-    
-    const textEndY = wrapText(text, 50, 100, 600, 55);
-    
-    drawIcon(ctx, 50, canvas.height - 100, 30, colors.text);
-    
-    ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = colors.text;
-    ctx.fillText(bottomText, 95, canvas.height - 75);
-    
-    ctx.restore();
-    
-    const finalCanvas = document.createElement('canvas');
-    const finalCtx = finalCanvas.getContext('2d');
-    finalCanvas.width = canvas.width;
-    finalCanvas.height = canvas.height;
-    
-    finalCtx.save();
-    finalCtx.beginPath();
-    finalCtx.roundRect(0, 0, finalCanvas.width, finalCanvas.height, borderRadius);
-    finalCtx.clip();
-    finalCtx.drawImage(canvas, 0, 0);
-    finalCtx.restore();
-    
-    const link = document.createElement('a');
-    const fileName = text
-      .replace(/[^a-zA-Z0-9\s]/g, '')
-      .replace(/\s+/g, '_')
-      .substring(0, 10) + '-info-card.png';
-    
-    link.download = fileName;
-    link.href = finalCanvas.toDataURL('image/png');
-    link.click();
+
+    const textStyle = {
+      fontSize: forExport ? '42px' : '19px',
+      fontWeight: '700',
+      lineHeight: '1.6',
+      letterSpacing: '-0.01em'
+    };
+
+    const bottomTextStyle = {
+      fontSize: forExport ? '22px' : '11px',
+      fontWeight: '700',
+      letterSpacing: '0.02em'
+    };
+
+    return (
+      <div ref={cardRef} style={cardStyle}>
+        <div style={{ flex: `${100 - responseSpace}%` }}>
+          <p style={textStyle}>
+            {text}
+          </p>
+        </div>
+        
+        <div style={{ height: responseHeight }} />
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
+          <IconPreview size={forExport ? 30 : 20} color={colors.text} />
+          <span style={bottomTextStyle}>
+            {bottomText}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  const downloadCard = async (text, index) => {
+    // Crear un contenedor temporal para la tarjeta de exportación
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '-9999px';
+    document.body.appendChild(tempContainer);
+
+    // Renderizar el componente en el contenedor temporal
+    const root = createRoot(tempContainer);
+    root.render(<CardPreview text={text} index={index} forExport={true} />);
+
+    // Esperar a que el DOM se actualice
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      const canvas = await html2canvas(tempContainer.firstChild, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: null,
+        logging: false
+      });
+
+      const link = document.createElement('a');
+      const fileName = text
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 10) + '-info-card.png';
+
+      link.download = fileName;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (error) {
+      console.error('Error al generar la imagen:', error);
+    } finally {
+      // Limpiar
+      root.unmount();
+      document.body.removeChild(tempContainer);
+    }
   };
 
   const downloadAllCards = () => {
@@ -280,57 +292,8 @@ const CardGenerator = () => {
     texts.forEach((text, index) => {
       setTimeout(() => {
         downloadCard(text, index);
-      }, index * 500);
+      }, index * 1000); // Aumentado el delay para dar más tiempo entre capturas
     });
-  };
-
-  const CardPreview = ({ text, index }) => {
-    const colors = getCardColors();
-    const responseHeight = `${responseSpace}%`;
-    
-    return (
-      <div
-        style={{
-          position: 'relative',
-          background: colors.bg,
-          color: colors.text,
-          borderRadius: '12px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-          width: '320px',
-          height: '450px',
-          padding: '28px',
-          border: `3px solid ${colors.border}`,
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'all 0.3s ease',
-          cursor: 'pointer',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.3)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'translateY(0)';
-          e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.2)';
-        }}
-      >
-        <div style={{ flex: `${100 - responseSpace}%` }}>
-          <p style={{ fontSize: '19px', fontWeight: '700', lineHeight: '1.6', letterSpacing: '-0.01em' }}>
-            {text}
-          </p>
-        </div>
-        
-        <div style={{ height: responseHeight }} />
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <IconPreview size={20} color={colors.text} />
-          <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.02em' }}>
-            {bottomText}
-          </span>
-        </div>
-      </div>
-    );
   };
 
   const styles = {
@@ -378,7 +341,8 @@ const CardGenerator = () => {
       overflow: 'hidden',
     },
     appContainerExpanded: {
-      minHeight: '100vh',
+      minHeight: 'auto',
+      paddingBottom: '40px'
     },
     maxWidth: {
       maxWidth: '1200px',
@@ -503,6 +467,8 @@ const CardGenerator = () => {
       WebkitOverflowScrolling: 'touch',
       scrollbarWidth: 'thin',
       scrollbarColor: '#cbd5e0 transparent',
+      maxHeight: '800px',
+      overflowY: 'auto'
     },
     cardGrid: {
       display: 'flex',
@@ -784,7 +750,18 @@ If our project was a movie, it would be _____"
               <div style={styles.cardGrid}>
                 {parseCardTexts().map((text, index) => (
                   <div key={index} style={styles.cardWrapper}>
-                    <CardPreview text={text} index={index} />
+                    <div
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-4px)';
+                        e.currentTarget.style.boxShadow = '0 15px 40px rgba(0, 0, 0, 0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.2)';
+                      }}
+                    >
+                      <CardPreview text={text} index={index} />
+                    </div>
                     <button
                       onClick={() => downloadCard(text, index)}
                       style={styles.buttonSecondary}
