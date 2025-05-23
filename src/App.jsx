@@ -19,7 +19,42 @@ const CardGenerator = () => {
   const getCardColors = () => {
     if (cardType === 'black') return { bg: '#000000', text: '#FFFFFF', border: '#FFFFFF' };
     if (cardType === 'white') return { bg: '#FFFFFF', text: '#000000', border: '#000000' };
-    return { bg: customBgColor, text: customTextColor, border: customTextColor };
+    
+    // Función para ajustar el brillo del color
+    const adjustBrightness = (hex, percent) => {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const r = (num >> 16) + percent;
+      const g = ((num >> 8) & 0x00FF) + percent;
+      const b = (num & 0x00FF) + percent;
+      
+      const newR = Math.min(255, Math.max(0, r));
+      const newG = Math.min(255, Math.max(0, g));
+      const newB = Math.min(255, Math.max(0, b));
+      
+      return '#' + (newB | (newG << 8) | (newR << 16)).toString(16).padStart(6, '0');
+    };
+
+    // Función para generar un color complementario
+    const getComplementaryColor = (hex) => {
+      const num = parseInt(hex.replace('#', ''), 16);
+      const comp = 0xFFFFFF ^ num;
+      return '#' + comp.toString(16).padStart(6, '0');
+    };
+
+    // Generar colores para el gradiente
+    const brighterColor = adjustBrightness(customBgColor, 40);
+    const darkerColor = adjustBrightness(customBgColor, -20);
+    const complementary = getComplementaryColor(customBgColor);
+    
+    const gradientAngle = '135deg';
+    const gradient = `linear-gradient(${gradientAngle}, ${brighterColor} 0%, ${darkerColor} 100%)`;
+
+    return { 
+      bg: gradient, 
+      text: customTextColor,
+      border: customTextColor,
+      complementary
+    };
   };
 
   // Auto-expand when user starts typing
@@ -257,7 +292,7 @@ const CardGenerator = () => {
       <div
         style={{
           position: 'relative',
-          backgroundColor: colors.bg,
+          background: colors.bg,
           color: colors.text,
           borderRadius: '12px',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
@@ -268,7 +303,7 @@ const CardGenerator = () => {
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           display: 'flex',
           flexDirection: 'column',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          transition: 'all 0.3s ease',
           cursor: 'pointer',
         }}
         onMouseEnter={(e) => {
