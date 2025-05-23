@@ -24,9 +24,8 @@ const CardGenerator = () => {
 
   // Auto-expand when user starts typing
   useEffect(() => {
-    if (cardTexts.trim() && !isExpanded) {
-      setIsExpanded(true);
-    }
+    const hasCards = parseCardTexts().length > 0;
+    setIsExpanded(hasCards);
   }, [cardTexts]);
 
   const drawIcon = (ctx, x, y, size, color) => {
@@ -589,7 +588,7 @@ const CardGenerator = () => {
       {/* App Section */}
       <section style={{
         ...styles.appContainer,
-        ...(isExpanded ? styles.appContainerExpanded : { maxHeight: '400px' })
+        ...(isExpanded ? styles.appContainerExpanded : { })
       }}>
         <div style={styles.maxWidth}>
           <div style={styles.settingsCard}>
@@ -605,12 +604,22 @@ const CardGenerator = () => {
                 placeholder="Our biggest win this sprint was _____
 The team's superpower is _____
 If our project was a movie, it would be _____"
-                style={styles.textarea}
+                style={{
+                  ...styles.textarea,
+                  marginBottom: '48px'
+                }}
                 onFocus={(e) => {
                   e.target.style.borderColor = '#667eea';
-                  setIsExpanded(true);
+                  if (parseCardTexts().length > 0) {
+                    setIsExpanded(true);
+                  }
                 }}
-                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  if (parseCardTexts().length === 0) {
+                    setIsExpanded(false);
+                  }
+                }}
               />
             </div>
             
