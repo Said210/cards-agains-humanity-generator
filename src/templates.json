@@ -1,0 +1,92 @@
+{
+  "categories": [
+    {
+      "name": "Sprint Retrospectiva",
+      "emoji": "🚀",
+      "templates": [
+        {
+          "name": "Básica",
+          "icon": "thinking",
+          "phrases": [
+            "Nuestro mayor logro este sprint fue _____",
+            "Lo que más nos retrasó fue _____",
+            "La próxima vez deberíamos _____",
+            "Un aprendizaje importante fue _____",
+            "Algo que podríamos mejorar es _____"
+          ]
+        },
+        {
+          "name": "Divertida",
+          "icon": "emoji",
+          "emoji": "🎮",
+          "phrases": [
+            "Si este sprint fuera un videojuego sería _____",
+            "El MVP de nuestro equipo fue _____ porque _____",
+            "La feature más emocionante fue _____ porque _____",
+            "Si tuviéramos superpoderes, habríamos _____",
+            "El bug más gracioso fue cuando _____"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Team Building",
+      "emoji": "🌟",
+      "templates": [
+        {
+          "name": "Conociendo al Equipo",
+          "icon": "emoji",
+          "emoji": "💫",
+          "phrases": [
+            "El superpoder secreto de nuestro equipo es _____",
+            "Si fuéramos un equipo de superhéroes seríamos _____",
+            "Nuestra kriptonita como equipo es _____",
+            "En 5 años, seremos recordados por _____",
+            "La receta secreta de nuestro éxito es _____"
+          ]
+        },
+        {
+          "name": "Cultura de Equipo",
+          "icon": "emoji",
+          "emoji": "🎭",
+          "phrases": [
+            "Si nuestro equipo fuera una película sería _____",
+            "Nuestra canción de equipo sería _____ porque _____",
+            "El ritual más importante de nuestro equipo es _____",
+            "Lo que hace único a nuestro equipo es _____",
+            "Nuestro lema no oficial es _____"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Innovación",
+      "emoji": "💡",
+      "templates": [
+        {
+          "name": "Ideación",
+          "icon": "emoji",
+          "emoji": "🎯",
+          "phrases": [
+            "Una idea loca que podría funcionar es _____",
+            "Si tuviéramos presupuesto ilimitado haríamos _____",
+            "En 5 años, nuestra tecnología podría _____",
+            "Un problema que nadie está resolviendo es _____",
+            "La próxima gran tendencia será _____"
+          ]
+        },
+        {
+          "name": "Mejora Continua",
+          "icon": "warning",
+          "phrases": [
+            "Podríamos ser 10x más eficientes si _____",
+            "Un proceso que necesita automatización es _____",
+            "Una herramienta que nos cambiaría la vida sería _____",
+            "Deberíamos dejar de hacer _____ y empezar a _____",
+            "El mayor desperdicio de tiempo es _____"
+          ]
+        }
+      ]
+    }
+  ]
+} 

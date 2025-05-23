@@ -1,17 +1,278 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
+import templates from './templates.json';
 
 const CardGenerator = () => {
-  const [cardTexts, setCardTexts] = useState('');
+  const [cardTexts, setCardTexts] = useState(() => {
+    const saved = localStorage.getItem('cardTexts');
+    return saved || '';
+  });
   const [responseSpace, setResponseSpace] = useState(30);
-  const [cardType, setCardType] = useState('black');
-  const [customBgColor, setCustomBgColor] = useState('#6366f1');
-  const [customTextColor, setCustomTextColor] = useState('#ffffff');
-  const [bottomText, setBottomText] = useState('Track Against Humanity');
-  const [iconType, setIconType] = useState('triangle');
-  const [customEmoji, setCustomEmoji] = useState('🎮');
+  const [cardType, setCardType] = useState(() => {
+    const saved = localStorage.getItem('cardType');
+    return saved || 'black';
+  });
+  const [customBgColor, setCustomBgColor] = useState(() => {
+    const saved = localStorage.getItem('customBgColor');
+    return saved || '#6366f1';
+  });
+  const [customTextColor, setCustomTextColor] = useState(() => {
+    const saved = localStorage.getItem('customTextColor');
+    return saved || '#ffffff';
+  });
+  const [bottomText, setBottomText] = useState(() => {
+    const saved = localStorage.getItem('bottomText');
+    return saved || 'Track Against Humanity';
+  });
+  const [iconType, setIconType] = useState(() => {
+    const saved = localStorage.getItem('iconType');
+    return saved || 'triangle';
+  });
+  const [customEmoji, setCustomEmoji] = useState(() => {
+    const saved = localStorage.getItem('customEmoji');
+    return saved || '🎮';
+  });
   const [isExpanded, setIsExpanded] = useState(false);
-  const [fontSize, setFontSize] = useState(19);
+  const [fontSize, setFontSize] = useState(() => {
+    const saved = localStorage.getItem('fontSize');
+    return Number(saved) || 19;
+  });
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [showPresetsModal, setShowPresetsModal] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('cardTexts', cardTexts);
+    localStorage.setItem('cardType', cardType);
+    localStorage.setItem('customBgColor', customBgColor);
+    localStorage.setItem('customTextColor', customTextColor);
+    localStorage.setItem('bottomText', bottomText);
+    localStorage.setItem('iconType', iconType);
+    localStorage.setItem('customEmoji', customEmoji);
+    localStorage.setItem('fontSize', fontSize.toString());
+  }, [cardTexts, cardType, customBgColor, customTextColor, bottomText, iconType, customEmoji, fontSize]);
+
+  const toggleCategory = (categoryIndex) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryIndex]: !prev[categoryIndex]
+    }));
+  };
+
+  const PresetsModal = () => (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+      opacity: showPresetsModal ? 1 : 0,
+      visibility: showPresetsModal ? 'visible' : 'hidden',
+      transition: 'all 0.3s ease'
+    }}>
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '16px',
+        width: '90%',
+        maxWidth: '800px',
+        maxHeight: '80vh',
+        overflow: 'hidden',
+        transform: showPresetsModal ? 'scale(1)' : 'scale(0.9)',
+        transition: 'transform 0.3s ease'
+      }}>
+        <div style={{
+          padding: '24px',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <h2 style={{
+            margin: 0,
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1a202c'
+          }}>
+            Plantillas Predefinidas
+          </h2>
+          <button
+            onClick={() => setShowPresetsModal(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '8px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6L18 18" stroke="#4a5568" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+        <div style={{
+          padding: '24px',
+          overflowY: 'auto',
+          maxHeight: 'calc(80vh - 90px)'
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            {templates.categories.map((category, categoryIndex) => (
+              <div
+                key={categoryIndex}
+                style={{
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  overflow: 'hidden'
+                }}
+              >
+                <button
+                  onClick={() => toggleCategory(categoryIndex)}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    border: 'none',
+                    borderBottom: expandedCategories[categoryIndex] ? '1px solid #e2e8f0' : 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    background: expandedCategories[categoryIndex] ? '#f8fafc' : '#fff'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f1f5f9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = expandedCategories[categoryIndex] ? '#f8fafc' : '#fff';
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>{category.emoji}</span>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#1a202c',
+                    flex: 1,
+                    textAlign: 'left'
+                  }}>{category.name}</h3>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    style={{
+                      transform: expandedCategories[categoryIndex] ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease'
+                    }}
+                  >
+                    <path
+                      d="M5 7.5L10 12.5L15 7.5"
+                      stroke="#4a5568"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+                <div style={{
+                  maxHeight: expandedCategories[categoryIndex] ? '500px' : '0',
+                  overflow: 'hidden',
+                  transition: 'all 0.3s ease',
+                  padding: expandedCategories[categoryIndex] ? '16px' : '0 16px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
+                    {category.templates.map((template, templateIndex) => (
+                      <button
+                        key={templateIndex}
+                        onClick={() => {
+                          loadTemplate(categoryIndex, templateIndex);
+                          setShowPresetsModal(false);
+                        }}
+                        style={{
+                          padding: '12px',
+                          background: selectedCategory === categoryIndex && selectedTemplate === templateIndex
+                            ? '#eff6ff'
+                            : '#f8fafc',
+                          border: '1px solid',
+                          borderColor: selectedCategory === categoryIndex && selectedTemplate === templateIndex
+                            ? '#bfdbfe'
+                            : '#e2e8f0',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          fontSize: '14px',
+                          color: '#4a5568',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#eff6ff';
+                          e.currentTarget.style.borderColor = '#bfdbfe';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!(selectedCategory === categoryIndex && selectedTemplate === templateIndex)) {
+                            e.currentTarget.style.background = '#f8fafc';
+                            e.currentTarget.style.borderColor = '#e2e8f0';
+                          }
+                        }}
+                      >
+                        {template.icon === 'emoji' ? (
+                          <span style={{ fontSize: '16px' }}>{template.emoji}</span>
+                        ) : (
+                          <IconPreview 
+                            type={template.icon} 
+                            size={16} 
+                            color={selectedCategory === categoryIndex && selectedTemplate === templateIndex ? '#3b82f6' : '#4a5568'}
+                          />
+                        )}
+                        {template.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const loadTemplate = (categoryIndex, templateIndex) => {
+    const template = templates.categories[categoryIndex].templates[templateIndex];
+    setCardTexts(template.phrases.join('\n'));
+    if (template.icon) {
+      setIconType(template.icon);
+      if (template.icon === 'emoji' && template.emoji) {
+        setCustomEmoji(template.emoji);
+      }
+    }
+    setSelectedCategory(categoryIndex);
+    setSelectedTemplate(templateIndex);
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryIndex]: true
+    }));
+  };
 
   const parseCardTexts = () => {
     return cardTexts.split('\n').filter(text => text.trim());
@@ -576,6 +837,7 @@ const CardGenerator = () => {
 
   return (
     <div style={styles.container}>
+      <PresetsModal />
       {/* Hero Section */}
       <section style={styles.hero}>
         <div style={styles.heroContent}>
@@ -590,39 +852,41 @@ const CardGenerator = () => {
       {/* App Section */}
       <section style={{
         ...styles.appContainer,
-        ...(isExpanded ? styles.appContainerExpanded : { })
+        ...(isExpanded ? styles.appContainerExpanded : {})
       }}>
         <div style={styles.maxWidth}>
           <div style={styles.settingsCard}>
             <h2 style={styles.settingsTitle}>Start Creating Your Retro Cards</h2>
             
-            <div style={{ marginBottom: '32px' }}>
-              <label style={styles.label}>
-                Card Prompts (one per line)
-              </label>
-              <textarea
-                value={cardTexts}
-                onChange={(e) => setCardTexts(e.target.value)}
-                placeholder="Our biggest win this sprint was _____
+            <div style={{ marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <label style={styles.label}>
+                  Card Prompts (one per line)
+                </label>
+                <textarea
+                  value={cardTexts}
+                  onChange={(e) => setCardTexts(e.target.value)}
+                  placeholder="Our biggest win this sprint was _____
 The team's superpower is _____
 If our project was a movie, it would be _____"
-                style={{
-                  ...styles.textarea,
-                  marginBottom: '48px'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#667eea';
-                  if (parseCardTexts().length > 0) {
-                    setIsExpanded(true);
-                  }
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  if (parseCardTexts().length === 0) {
-                    setIsExpanded(false);
-                  }
-                }}
-              />
+                  style={{
+                    ...styles.textarea,
+                    marginBottom: '48px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#667eea';
+                    if (parseCardTexts().length > 0) {
+                      setIsExpanded(true);
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e2e8f0';
+                    if (parseCardTexts().length === 0) {
+                      setIsExpanded(false);
+                    }
+                  }}
+                />
+              </div>
             </div>
             
             {isExpanded && (
@@ -643,34 +907,41 @@ If our project was a movie, it would be _____"
                     <option value="custom">Custom Colors</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label style={styles.label}>
-                    Font Size
+                    Use Template
                   </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <input
-                      type="range"
-                      min="14"
-                      max="32"
-                      value={fontSize}
-                      onChange={(e) => setFontSize(Number(e.target.value))}
-                      style={{
-                        ...styles.range,
-                        flex: 1
-                      }}
-                    />
-                    <span style={{ 
-                      fontSize: '14px',
-                      color: '#64748b',
-                      minWidth: '40px',
-                      textAlign: 'right'
-                    }}>
-                      {fontSize}px
-                    </span>
-                  </div>
+                  <button
+                    onClick={() => setShowPresetsModal(true)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: '#fff',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '16px',
+                      cursor: 'pointer',
+                      fontSize: '15px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: '#4a5568',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f8fafc';
+                      e.currentTarget.style.borderColor = '#cbd5e0';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#fff';
+                      e.currentTarget.style.borderColor = '#e2e8f0';
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>📝</span>
+                    Choose from preset templates
+                  </button>
                 </div>
-                
+
                 {cardType === 'custom' && (
                   <div>
                     <label style={styles.label}>
@@ -698,7 +969,7 @@ If our project was a movie, it would be _____"
                     </div>
                   </div>
                 )}
-                
+
                 <div>
                   <label style={styles.label}>
                     Bottom Text
@@ -713,7 +984,7 @@ If our project was a movie, it would be _____"
                     onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                   />
                 </div>
-                
+
                 <div>
                   <label style={styles.label}>
                     Icon Style
@@ -726,10 +997,17 @@ If our project was a movie, it would be _____"
                         style={{
                           ...styles.iconOption,
                           ...(iconType === icon ? styles.iconOptionSelected : {}),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
                         }}
                         title={icon.charAt(0).toUpperCase() + icon.slice(1)}
                       >
-                        <IconPreview type={icon} size={16} color={iconType === icon ? '#667eea' : '#718096'} />
+                        <IconPreview 
+                          type={icon} 
+                          size={16} 
+                          color={iconType === icon ? '#3b82f6' : '#718096'} 
+                        />
                       </button>
                     ))}
                   </div>
@@ -744,7 +1022,34 @@ If our project was a movie, it would be _____"
                     />
                   )}
                 </div>
-                
+
+                <div>
+                  <label style={styles.label}>
+                    Font Size
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <input
+                      type="range"
+                      min="14"
+                      max="32"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(Number(e.target.value))}
+                      style={{
+                        ...styles.range,
+                        flex: 1
+                      }}
+                    />
+                    <span style={{ 
+                      fontSize: '14px',
+                      color: '#64748b',
+                      minWidth: '40px',
+                      textAlign: 'right'
+                    }}>
+                      {fontSize}px
+                    </span>
+                  </div>
+                </div>
+
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <button
                     onClick={downloadAllCards}
