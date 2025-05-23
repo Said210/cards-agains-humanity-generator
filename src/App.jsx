@@ -11,6 +11,7 @@ const CardGenerator = () => {
   const [iconType, setIconType] = useState('triangle');
   const [customEmoji, setCustomEmoji] = useState('🎮');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [fontSize, setFontSize] = useState(19);
 
   const parseCardTexts = () => {
     return cardTexts.split('\n').filter(text => text.trim());
@@ -214,7 +215,7 @@ const CardGenerator = () => {
     };
 
     const textStyle = {
-      fontSize: forExport ? '42px' : '19px',
+      fontSize: forExport ? `${fontSize * 2.2}px` : `${fontSize}px`,
       fontWeight: '700',
       lineHeight: '1.6',
       letterSpacing: '-0.01em'
@@ -641,6 +642,33 @@ If our project was a movie, it would be _____"
                     <option value="white">Classic White</option>
                     <option value="custom">Custom Colors</option>
                   </select>
+                </div>
+                
+                <div>
+                  <label style={styles.label}>
+                    Font Size
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <input
+                      type="range"
+                      min="14"
+                      max="32"
+                      value={fontSize}
+                      onChange={(e) => setFontSize(Number(e.target.value))}
+                      style={{
+                        ...styles.range,
+                        flex: 1
+                      }}
+                    />
+                    <span style={{ 
+                      fontSize: '14px',
+                      color: '#64748b',
+                      minWidth: '40px',
+                      textAlign: 'right'
+                    }}>
+                      {fontSize}px
+                    </span>
+                  </div>
                 </div>
                 
                 {cardType === 'custom' && (
