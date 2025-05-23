@@ -41,6 +41,10 @@ const CardGenerator = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [showPresetsModal, setShowPresetsModal] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState(() => {
+    const saved = localStorage.getItem('customTemplates');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     localStorage.setItem('cardTexts', cardTexts);
@@ -51,7 +55,8 @@ const CardGenerator = () => {
     localStorage.setItem('iconType', iconType);
     localStorage.setItem('customEmoji', customEmoji);
     localStorage.setItem('fontSize', fontSize.toString());
-  }, [cardTexts, cardType, customBgColor, customTextColor, bottomText, iconType, customEmoji, fontSize]);
+    localStorage.setItem('customTemplates', JSON.stringify(customTemplates));
+  }, [cardTexts, cardType, customBgColor, customTextColor, bottomText, iconType, customEmoji, fontSize, customTemplates]);
 
   const toggleCategory = (categoryIndex) => {
     setExpandedCategories(prev => ({
@@ -99,7 +104,7 @@ const CardGenerator = () => {
             fontWeight: '700',
             color: '#1a202c'
           }}>
-            Plantillas Predefinidas
+            Templates
           </h2>
           <button
             onClick={() => setShowPresetsModal(false)}
@@ -108,10 +113,7 @@ const CardGenerator = () => {
               border: 'none',
               cursor: 'pointer',
               padding: '8px',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              borderRadius: '8px'
             }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -124,133 +126,264 @@ const CardGenerator = () => {
           overflowY: 'auto',
           maxHeight: 'calc(80vh - 90px)'
         }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
-            {templates.categories.map((category, categoryIndex) => (
-              <div
-                key={categoryIndex}
-                style={{
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '12px',
-                  overflow: 'hidden'
-                }}
-              >
-                <button
-                  onClick={() => toggleCategory(categoryIndex)}
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    border: 'none',
-                    borderBottom: expandedCategories[categoryIndex] ? '1px solid #e2e8f0' : 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s ease',
-                    background: expandedCategories[categoryIndex] ? '#f8fafc' : '#fff'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f1f5f9';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = expandedCategories[categoryIndex] ? '#f8fafc' : '#fff';
-                  }}
-                >
-                  <span style={{ fontSize: '20px' }}>{category.emoji}</span>
-                  <h3 style={{
-                    margin: 0,
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    color: '#1a202c',
-                    flex: 1,
-                    textAlign: 'left'
-                  }}>{category.name}</h3>
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
+          {/* My Templates Section */}
+          {customTemplates.length > 0 && (
+            <div style={{ marginBottom: '32px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '16px'
+              }}>
+                <h3 style={{
+                  margin: 0,
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#2d3748'
+                }}>My Templates</h3>
+              </div>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                gap: '12px',
+                marginBottom: '24px'
+              }}>
+                {customTemplates.map((template) => (
+                  <div
+                    key={template.id}
                     style={{
-                      transform: expandedCategories[categoryIndex] ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease'
+                      position: 'relative',
+                      padding: '16px',
+                      background: '#fff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f8fafc';
+                      e.currentTarget.style.borderColor = '#cbd5e0';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#fff';
+                      e.currentTarget.style.borderColor = '#e2e8f0';
                     }}
                   >
-                    <path
-                      d="M5 7.5L10 12.5L15 7.5"
-                      stroke="#4a5568"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-                <div style={{
-                  maxHeight: expandedCategories[categoryIndex] ? '500px' : '0',
-                  overflow: 'hidden',
-                  transition: 'all 0.3s ease',
-                  padding: expandedCategories[categoryIndex] ? '16px' : '0 16px'
-                }}>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px'
-                  }}>
-                    {category.templates.map((template, templateIndex) => (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        {template.icon === 'emoji' ? (
+                          <span style={{ fontSize: '20px' }}>{template.emoji}</span>
+                        ) : (
+                          <IconPreview type={template.icon} size={20} color="#4a5568" />
+                        )}
+                        <span style={{
+                          fontSize: '16px',
+                          fontWeight: '500',
+                          color: '#2d3748'
+                        }}>{template.name}</span>
+                      </div>
                       <button
-                        key={templateIndex}
-                        onClick={() => {
-                          loadTemplate(categoryIndex, templateIndex);
-                          setShowPresetsModal(false);
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteCustomTemplate(template.id);
                         }}
                         style={{
-                          padding: '12px',
-                          background: selectedCategory === categoryIndex && selectedTemplate === templateIndex
-                            ? '#eff6ff'
-                            : '#f8fafc',
-                          border: '1px solid',
-                          borderColor: selectedCategory === categoryIndex && selectedTemplate === templateIndex
-                            ? '#bfdbfe'
-                            : '#e2e8f0',
-                          borderRadius: '8px',
+                          background: 'none',
+                          border: 'none',
+                          padding: '4px',
                           cursor: 'pointer',
-                          textAlign: 'left',
-                          fontSize: '14px',
-                          color: '#4a5568',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px'
+                          opacity: 0.6,
+                          transition: 'opacity 0.2s ease'
                         }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#eff6ff';
-                          e.currentTarget.style.borderColor = '#bfdbfe';
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!(selectedCategory === categoryIndex && selectedTemplate === templateIndex)) {
-                            e.currentTarget.style.background = '#f8fafc';
-                            e.currentTarget.style.borderColor = '#e2e8f0';
-                          }
-                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                        onMouseLeave={(e) => e.currentTarget.style.opacity = 0.6}
                       >
-                        {template.icon === 'emoji' ? (
-                          <span style={{ fontSize: '16px' }}>{template.emoji}</span>
-                        ) : (
-                          <IconPreview 
-                            type={template.icon} 
-                            size={16} 
-                            color={selectedCategory === categoryIndex && selectedTemplate === templateIndex ? '#3b82f6' : '#4a5568'}
-                          />
-                        )}
-                        {template.name}
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                          <path d="M2 4h12M5.333 4V2.667a1.333 1.333 0 011.334-1.334h2.666a1.333 1.333 0 011.334 1.334V4m2 0v9.333a1.333 1.333 0 01-1.334 1.334H4.667a1.333 1.333 0 01-1.334-1.334V4h9.334z" stroke="#718096" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
-                    ))}
+                    </div>
+                    <div style={{
+                      fontSize: '14px',
+                      color: '#718096',
+                      marginBottom: '12px'
+                    }}>
+                      {template.phrases.length} cards
+                    </div>
+                    <button
+                      onClick={() => loadCustomTemplate(template)}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        background: '#3b82f6',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#2563eb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#3b82f6';
+                      }}
+                    >
+                      Use Template
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Preset Templates Section */}
+          <div>
+            <h3 style={{
+              margin: '0 0 16px 0',
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#2d3748'
+            }}>Preset Templates</h3>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px'
+            }}>
+              {templates.categories.map((category, categoryIndex) => (
+                <div
+                  key={categoryIndex}
+                  style={{
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <button
+                    onClick={() => toggleCategory(categoryIndex)}
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      border: 'none',
+                      borderBottom: expandedCategories[categoryIndex] ? '1px solid #e2e8f0' : 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      background: expandedCategories[categoryIndex] ? '#f8fafc' : '#fff'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f1f5f9';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = expandedCategories[categoryIndex] ? '#f8fafc' : '#fff';
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>{category.emoji}</span>
+                    <h3 style={{
+                      margin: 0,
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      color: '#1a202c',
+                      flex: 1,
+                      textAlign: 'left'
+                    }}>{category.name}</h3>
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      style={{
+                        transform: expandedCategories[categoryIndex] ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.3s ease'
+                      }}
+                    >
+                      <path
+                        d="M5 7.5L10 12.5L15 7.5"
+                        stroke="#4a5568"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </button>
+                  <div style={{
+                    maxHeight: expandedCategories[categoryIndex] ? '500px' : '0',
+                    overflow: 'hidden',
+                    transition: 'all 0.3s ease',
+                    padding: expandedCategories[categoryIndex] ? '16px' : '0 16px'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}>
+                      {category.templates.map((template, templateIndex) => (
+                        <button
+                          key={templateIndex}
+                          onClick={() => {
+                            loadTemplate(categoryIndex, templateIndex);
+                            setShowPresetsModal(false);
+                          }}
+                          style={{
+                            padding: '12px',
+                            background: selectedCategory === categoryIndex && selectedTemplate === templateIndex
+                              ? '#eff6ff'
+                              : '#f8fafc',
+                            border: '1px solid',
+                            borderColor: selectedCategory === categoryIndex && selectedTemplate === templateIndex
+                              ? '#bfdbfe'
+                              : '#e2e8f0',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontSize: '14px',
+                            color: '#4a5568',
+                            transition: 'all 0.2s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#eff6ff';
+                            e.currentTarget.style.borderColor = '#bfdbfe';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!(selectedCategory === categoryIndex && selectedTemplate === templateIndex)) {
+                              e.currentTarget.style.background = '#f8fafc';
+                              e.currentTarget.style.borderColor = '#e2e8f0';
+                            }
+                          }}
+                        >
+                          {template.icon === 'emoji' ? (
+                            <span style={{ fontSize: '16px' }}>{template.emoji}</span>
+                          ) : (
+                            <IconPreview 
+                              type={template.icon} 
+                              size={16} 
+                              color={selectedCategory === categoryIndex && selectedTemplate === templateIndex ? '#3b82f6' : '#4a5568'}
+                            />
+                          )}
+                          {template.name}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -556,6 +689,47 @@ const CardGenerator = () => {
         downloadCard(text, index);
       }, index * 1000); // Aumentado el delay para dar más tiempo entre capturas
     });
+  };
+
+  const saveCurrentAsTemplate = () => {
+    const templateName = prompt('Enter a name for this template:');
+    if (templateName) {
+      const newTemplate = {
+        id: Date.now(),
+        name: templateName,
+        icon: iconType,
+        emoji: iconType === 'emoji' ? customEmoji : null,
+        phrases: parseCardTexts(),
+        style: {
+          type: cardType,
+          bgColor: customBgColor,
+          textColor: customTextColor,
+          bottomText,
+          fontSize
+        }
+      };
+      setCustomTemplates(prev => [...prev, newTemplate]);
+    }
+  };
+
+  const loadCustomTemplate = (template) => {
+    setCardTexts(template.phrases.join('\n'));
+    setIconType(template.icon);
+    if (template.icon === 'emoji' && template.emoji) {
+      setCustomEmoji(template.emoji);
+    }
+    setCardType(template.style.type);
+    setCustomBgColor(template.style.bgColor);
+    setCustomTextColor(template.style.textColor);
+    setBottomText(template.style.bottomText);
+    setFontSize(template.style.fontSize);
+    setShowPresetsModal(false);
+  };
+
+  const deleteCustomTemplate = (templateId) => {
+    if (confirm('Are you sure you want to delete this template?')) {
+      setCustomTemplates(prev => prev.filter(t => t.id !== templateId));
+    }
   };
 
   const styles = {
@@ -1050,12 +1224,18 @@ If our project was a movie, it would be _____"
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'flex-end',
+                  gap: '16px',
+                  gridColumn: '1 / -1'  // Hace que ocupe todo el ancho
+                }}>
                   <button
                     onClick={downloadAllCards}
                     disabled={!parseCardTexts().length}
                     style={{
                       ...styles.button,
+                      flex: '1',
                       ...(parseCardTexts().length === 0 ? styles.buttonDisabled : {}),
                     }}
                     onMouseEnter={(e) => {
@@ -1072,6 +1252,43 @@ If our project was a movie, it would be _____"
                     }}
                   >
                     Download All Cards
+                  </button>
+
+                  <button
+                    onClick={saveCurrentAsTemplate}
+                    disabled={!parseCardTexts().length}
+                    style={{
+                      padding: '16px 28px',
+                      background: '#fff',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '16px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: parseCardTexts().length ? 'pointer' : 'not-allowed',
+                      color: parseCardTexts().length ? '#4a5568' : '#a0aec0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      flex: '1'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (parseCardTexts().length) {
+                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.style.borderColor = '#cbd5e0';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (parseCardTexts().length) {
+                        e.currentTarget.style.background = '#fff';
+                        e.currentTarget.style.borderColor = '#e2e8f0';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>💾</span>
+                    Save as Template
                   </button>
                 </div>
               </div>
