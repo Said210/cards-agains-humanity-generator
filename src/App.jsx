@@ -1,6 +1,89 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import templates from './templates.json';
+
+// Agregar hook personalizado para parallax
+const useParallax = (sensitivity = 0.1) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (!isHovering) return;
+
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = (e.clientX - rect.left - rect.width / 2) * sensitivity;
+      const y = (e.clientY - rect.top - rect.height / 2) * sensitivity;
+      
+      setPosition({ x, y });
+    },
+    [isHovering, sensitivity]
+  );
+
+  const handleMouseEnter = () => setIsHovering(true);
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  return {
+    position,
+    handlers: {
+      onMouseMove: handleMouseMove,
+      onMouseEnter: handleMouseEnter,
+      onMouseLeave: handleMouseLeave,
+    },
+  };
+};
+
+// Agregar componente ParallaxCard
+const ParallaxCard = ({ children, style }) => {
+  const { position, handlers } = useParallax(0.02);
+  const [glarePosition, setGlarePosition] = useState({ x: 50, y: 50 });
+
+  const handleMouseMove = (e) => {
+    handlers.onMouseMove(e);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setGlarePosition({ x, y });
+  };
+
+  return (
+    <div
+      {...handlers}
+      onMouseMove={handleMouseMove}
+      style={{
+        position: 'relative',
+        transform: `
+          perspective(1000px)
+          rotateX(${position.y * 0.1}deg)
+          rotateY(${position.x * 0.1}deg)
+          translateZ(0)
+        `,
+        transformStyle: 'preserve-3d',
+        transition: 'all 0.1s ease-out',
+        willChange: 'transform',
+        ...style,
+      }}
+    >
+      {children}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(255,255,255,0.1) 0%, transparent 80%)`,
+          pointerEvents: 'none',
+          opacity: position.x || position.y ? 1 : 0,
+          transition: 'opacity 0.3s ease-out',
+        }}
+      />
+    </div>
+  );
+};
 
 const CardGenerator = () => {
   const [cardTexts, setCardTexts] = useState(() => {
@@ -743,43 +826,62 @@ const CardGenerator = () => {
     }
   };
 
-  const Blob = ({ color, style, path }) => (
-    <div style={{
-      position: 'absolute',
-      transition: 'transform 0.1s ease-out',
-      ...style
-    }}>
-      <svg
-        viewBox="0 0 200 200"
-        xmlns="http://www.w3.org/2000/svg"
+  const Blob = ({ color, style, path }) => {
+    const { position, handlers } = useParallax(0.08);
+
+    return (
+      <div
+        {...handlers}
         style={{
-          filter: 'blur(1px)',
-          opacity: 0.7,
-          width: '100%',
-          height: '100%'
+          position: 'absolute',
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          transition: 'transform 0.1s ease-out',
+          willChange: 'transform',
+          ...style,
         }}
       >
-        <path
-          fill={color}
-          d={path}
-          transform="translate(100 100)"
-        />
-      </svg>
-    </div>
-  );
+        <svg
+          viewBox="0 0 200 200"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            filter: 'blur(1px)',
+            opacity: 0.7,
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          <path
+            fill={color}
+            d={path}
+            transform="translate(100 100)"
+          />
+        </svg>
+      </div>
+    );
+  };
 
-  const DecorativeShape = ({ color, style }) => (
-    <div style={{
-      position: 'absolute',
-      background: `linear-gradient(135deg, ${color}30 0%, ${color}10 100%)`,
-      borderRadius: '50%',
-      filter: 'blur(60px)',
-      transition: 'transform 0.1s ease-out',
-      ...style
-    }} />
-  );
+  const DecorativeShape = ({ color, style }) => {
+    const { position, handlers } = useParallax(0.1);
 
-  const FloatingShape = ({ style }) => {
+    return (
+      <div
+        {...handlers}
+        style={{
+          position: 'absolute',
+          background: `linear-gradient(135deg, ${color}30 0%, ${color}10 100%)`,
+          borderRadius: '50%',
+          filter: 'blur(60px)',
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          transition: 'transform 0.1s ease-out',
+          willChange: 'transform',
+          ...style,
+        }}
+      />
+    );
+  };
+
+  const FloatingShape = ({ style, parallaxIntensity = 20 }) => {
+    const { position, handlers } = useParallax(0.1);
     const [rotation, setRotation] = useState(0);
 
     useEffect(() => {
@@ -791,16 +893,21 @@ const CardGenerator = () => {
 
     return (
       <div
+        {...handlers}
         style={{
           position: 'absolute',
           width: '40px',
           height: '40px',
           background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
           borderRadius: '8px',
-          transform: `rotate(${rotation}deg)`,
+          transform: `
+            rotate(${rotation}deg)
+            translate(${position.x}px, ${position.y}px)
+          `,
           opacity: 0.1,
-          transition: 'all 0.3s ease',
+          transition: 'transform 0.1s ease-out',
           animation: 'float 6s ease-in-out infinite',
+          willChange: 'transform',
           ...style,
         }}
       />
@@ -820,19 +927,26 @@ const CardGenerator = () => {
     </div>
   );
 
-  const GradientCircle = ({ color = '#3b82f6', style }) => (
-    <div
-      style={{
-        position: 'absolute',
-        width: '300px',
-        height: '300px',
-        background: `radial-gradient(circle, ${color}20 0%, ${color}05 70%, transparent 100%)`,
-        borderRadius: '50%',
-        transition: 'all 0.3s ease',
-        ...style,
-      }}
-    />
-  );
+  const GradientCircle = ({ color = '#3b82f6', style }) => {
+    const { position, handlers } = useParallax(0.05);
+
+    return (
+      <div
+        {...handlers}
+        style={{
+          position: 'absolute',
+          width: '300px',
+          height: '300px',
+          background: `radial-gradient(circle, ${color}20 0%, ${color}05 70%, transparent 100%)`,
+          borderRadius: '50%',
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          transition: 'transform 0.1s ease-out',
+          willChange: 'transform',
+          ...style,
+        }}
+      />
+    );
+  };
 
   const styles = {
     container: {
@@ -1124,21 +1238,12 @@ const CardGenerator = () => {
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
       position: 'relative',
       overflow: 'hidden',
+      transformStyle: 'preserve-3d',
       '&:hover': {
         transform: 'translateY(-8px) scale(1.02)',
         boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
         background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)',
         borderColor: '#bfdbfe',
-      },
-      '&:hover::after': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%)',
-        pointerEvents: 'none',
       },
     },
     featureIcon: {
@@ -1345,20 +1450,6 @@ const CardGenerator = () => {
         paddingTop: '60px',
         paddingBottom: '60px',
       }}>
-        <FloatingShape 
-          style={{
-            top: '10%',
-            right: '5%',
-            transform: 'rotate(30deg)',
-          }}
-        />
-        <FloatingShape 
-          style={{
-            bottom: '15%',
-            left: '8%',
-            transform: 'rotate(-15deg)',
-          }}
-        />
         <div style={styles.contentMaxWidth}>
           <div style={{
             display: 'grid',
@@ -1366,27 +1457,29 @@ const CardGenerator = () => {
             gap: '32px',
             textAlign: 'center',
           }}>
-            <div style={styles.featureHighlight}>
-              <span style={{ fontSize: '32px' }}>🎯</span>
-              <h3 style={styles.featureTitle}>Purposeful Prompts</h3>
-              <p style={styles.featureText}>
-                Carefully crafted templates for sprint reviews, team building, and innovation sessions
-              </p>
-            </div>
-            <div style={styles.featureHighlight}>
-              <span style={{ fontSize: '32px' }}>✨</span>
-              <h3 style={styles.featureTitle}>Beautiful Design</h3>
-              <p style={styles.featureText}>
-                Professional-grade cards with customizable colors, fonts, and themes
-              </p>
-            </div>
-            <div style={styles.featureHighlight}>
-              <span style={{ fontSize: '32px' }}>💾</span>
-              <h3 style={styles.featureTitle}>Save & Reuse</h3>
-              <p style={styles.featureText}>
-                Create and save your custom templates for future sessions
-              </p>
-            </div>
+            {[
+              {
+                icon: '🎯',
+                title: 'Purposeful Prompts',
+                text: 'Carefully crafted templates for sprint reviews, team building, and innovation sessions'
+              },
+              {
+                icon: '✨',
+                title: 'Beautiful Design',
+                text: 'Professional-grade cards with customizable colors, fonts, and themes'
+              },
+              {
+                icon: '💾',
+                title: 'Save & Reuse',
+                text: 'Create and save your custom templates for future sessions'
+              }
+            ].map((feature, index) => (
+              <ParallaxCard key={index} style={styles.featureHighlight}>
+                <span style={{ fontSize: '32px' }}>{feature.icon}</span>
+                <h3 style={styles.featureTitle}>{feature.title}</h3>
+                <p style={styles.featureText}>{feature.text}</p>
+              </ParallaxCard>
+            ))}
           </div>
         </div>
       </section>
@@ -1758,87 +1851,39 @@ If our team dynamic was a movie genre, it would be _____"
       <section style={{
         ...styles.contentSection,
         background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-        position: 'relative',
-        overflow: 'hidden',
       }}>
-        <WavePattern 
-          style={{
-            top: 0,
-            transform: 'rotate(180deg)',
-          }}
-        />
-        <WavePattern 
-          style={{
-            bottom: 0,
-          }}
-        />
-        <GradientCircle
-          color="#6366f1"
-          style={{
-            top: '30%',
-            right: '5%',
-            transform: `scale(${1 + scrollY * 0.001})`,
-          }}
-        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Versatile Applications</h2>
           <div style={styles.featureGrid}>
-            <div style={styles.featureCard}>
-              <div style={styles.featureIcon}>📊</div>
-              <h3 style={styles.featureTitle}>Sprint Retrospectives</h3>
-              <p style={styles.featureText}>
-                Generate insightful discussions about sprint outcomes, team dynamics, and process improvements. 
-                Perfect for Scrum and Agile teams looking to enhance their retrospective sessions.
-              </p>
-            </div>
-            <div style={styles.featureCard}>
-              <div style={styles.featureIcon}>🤝</div>
-              <h3 style={styles.featureTitle}>Team Building</h3>
-              <p style={styles.featureText}>
-                Create memorable ice-breakers and team bonding activities. Build stronger connections 
-                through shared experiences and storytelling.
-              </p>
-            </div>
-            <div style={styles.featureCard}>
-              <div style={styles.featureIcon}>💡</div>
-              <h3 style={styles.featureTitle}>Innovation Workshops</h3>
-              <p style={styles.featureText}>
-                Spark creative thinking and generate innovative ideas. Break through conventional thinking 
-                patterns with unexpected prompts and perspectives.
-              </p>
-            </div>
+            {[
+              {
+                icon: '📊',
+                title: 'Sprint Retrospectives',
+                text: 'Generate insightful discussions about sprint outcomes, team dynamics, and process improvements.'
+              },
+              {
+                icon: '🤝',
+                title: 'Team Building',
+                text: 'Create memorable ice-breakers and team bonding activities.'
+              },
+              {
+                icon: '💡',
+                title: 'Innovation Workshops',
+                text: 'Spark creative thinking and generate innovative ideas.'
+              }
+            ].map((feature, index) => (
+              <ParallaxCard key={index} style={styles.featureCard}>
+                <div style={styles.featureIcon}>{feature.icon}</div>
+                <h3 style={styles.featureTitle}>{feature.title}</h3>
+                <p style={styles.featureText}>{feature.text}</p>
+              </ParallaxCard>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Implementation Guide */}
-      <section style={{
-        ...styles.contentSection,
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <FloatingShape 
-          style={{
-            top: '15%',
-            left: '5%',
-            transform: `rotate(${-15 + scrollY * 0.05}deg)`,
-          }}
-        />
-        <FloatingShape 
-          style={{
-            bottom: '20%',
-            right: '8%',
-            transform: `rotate(${30 + scrollY * 0.05}deg)`,
-          }}
-        />
-        <GradientCircle
-          color="#3b82f6"
-          style={{
-            bottom: '-150px',
-            right: '-150px',
-            transform: `scale(${1 + scrollY * 0.001})`,
-          }}
-        />
+      <section style={styles.contentSection}>
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Facilitate Effective Sessions</h2>
           <div style={{
@@ -1847,27 +1892,25 @@ If our team dynamic was a movie genre, it would be _____"
             gap: '32px',
             marginTop: '40px'
           }}>
-            <div style={styles.guideStep}>
-              <h3 style={styles.guideTitle}>1. Preparation</h3>
-              <p style={styles.guideText}>
-                Select or create 5-10 targeted prompts for your session's objectives. 
-                Mix reflection questions with creative prompts to maintain energy and engagement.
-              </p>
-            </div>
-            <div style={styles.guideStep}>
-              <h3 style={styles.guideTitle}>2. Facilitation</h3>
-              <p style={styles.guideText}>
-                Guide participants through each prompt, allowing time for individual reflection 
-                before group discussion. Create a safe space for honest sharing.
-              </p>
-            </div>
-            <div style={styles.guideStep}>
-              <h3 style={styles.guideTitle}>3. Action Items</h3>
-              <p style={styles.guideText}>
-                Capture key insights and convert discussions into actionable improvements. 
-                Document patterns and themes that emerge from the responses.
-              </p>
-            </div>
+            {[
+              {
+                title: "1. Preparation",
+                text: "Select or create 5-10 targeted prompts for your session's objectives."
+              },
+              {
+                title: "2. Facilitation",
+                text: "Guide participants through each prompt, allowing time for individual reflection."
+              },
+              {
+                title: "3. Action Items",
+                text: "Capture key insights and convert discussions into actionable improvements."
+              }
+            ].map((step, index) => (
+              <ParallaxCard key={index} style={styles.guideStep}>
+                <h3 style={styles.guideTitle}>{step.title}</h3>
+                <p style={styles.guideText}>{step.text}</p>
+              </ParallaxCard>
+            ))}
           </div>
         </div>
       </section>
@@ -1876,53 +1919,33 @@ If our team dynamic was a movie genre, it would be _____"
       <section style={{
         ...styles.contentSection,
         background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-        position: 'relative',
-        overflow: 'hidden',
       }}>
-        <WavePattern 
-          style={{
-            top: 0,
-            transform: 'rotate(180deg)',
-          }}
-        />
-        <GradientCircle
-          color="#8b5cf6"
-          style={{
-            top: '20%',
-            left: '10%',
-            transform: `scale(${1 + scrollY * 0.001})`,
-          }}
-        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Professional Customization</h2>
           <div style={styles.featureGrid}>
-            <div style={styles.customizationCard}>
-              <h3 style={styles.customizationTitle}>Visual Design</h3>
-              <ul style={styles.customizationList}>
-                <li>Classic black or white cards</li>
-                <li>Custom color schemes</li>
-                <li>Gradient backgrounds</li>
-                <li>Professional typography</li>
-              </ul>
-            </div>
-            <div style={styles.customizationCard}>
-              <h3 style={styles.customizationTitle}>Branding</h3>
-              <ul style={styles.customizationList}>
-                <li>Company name integration</li>
-                <li>Custom icons and emojis</li>
-                <li>Team-specific templates</li>
-                <li>Saved configurations</li>
-              </ul>
-            </div>
-            <div style={styles.customizationCard}>
-              <h3 style={styles.customizationTitle}>Export Options</h3>
-              <ul style={styles.customizationList}>
-                <li>High-resolution PNG export</li>
-                <li>Individual or batch download</li>
-                <li>Print-ready format</li>
-                <li>Digital sharing capability</li>
-              </ul>
-            </div>
+            {[
+              {
+                title: 'Visual Design',
+                items: ['Classic black or white cards', 'Custom color schemes', 'Gradient backgrounds', 'Professional typography']
+              },
+              {
+                title: 'Branding',
+                items: ['Company name integration', 'Custom icons and emojis', 'Team-specific templates', 'Saved configurations']
+              },
+              {
+                title: 'Export Options',
+                items: ['High-resolution PNG export', 'Individual or batch download', 'Print-ready format', 'Digital sharing capability']
+              }
+            ].map((option, index) => (
+              <ParallaxCard key={index} style={styles.customizationCard}>
+                <h3 style={styles.customizationTitle}>{option.title}</h3>
+                <ul style={styles.customizationList}>
+                  {option.items.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </ParallaxCard>
+            ))}
           </div>
         </div>
       </section>
