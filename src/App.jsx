@@ -45,6 +45,7 @@ const CardGenerator = () => {
     const saved = localStorage.getItem('customTemplates');
     return saved ? JSON.parse(saved) : [];
   });
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     localStorage.setItem('cardTexts', cardTexts);
@@ -57,6 +58,16 @@ const CardGenerator = () => {
     localStorage.setItem('fontSize', fontSize.toString());
     localStorage.setItem('customTemplates', JSON.stringify(customTemplates));
   }, [cardTexts, cardType, customBgColor, customTextColor, bottomText, iconType, customEmoji, fontSize, customTemplates]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      requestAnimationFrame(() => {
+        setScrollY(window.scrollY);
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const toggleCategory = (categoryIndex) => {
     setExpandedCategories(prev => ({
@@ -732,6 +743,42 @@ const CardGenerator = () => {
     }
   };
 
+  const Blob = ({ color, style, path }) => (
+    <div style={{
+      position: 'absolute',
+      transition: 'transform 0.1s ease-out',
+      ...style
+    }}>
+      <svg
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          filter: 'blur(1px)',
+          opacity: 0.7,
+          width: '100%',
+          height: '100%'
+        }}
+      >
+        <path
+          fill={color}
+          d={path}
+          transform="translate(100 100)"
+        />
+      </svg>
+    </div>
+  );
+
+  const DecorativeShape = ({ color, style }) => (
+    <div style={{
+      position: 'absolute',
+      background: `linear-gradient(135deg, ${color}30 0%, ${color}10 100%)`,
+      borderRadius: '50%',
+      filter: 'blur(60px)',
+      transition: 'transform 0.1s ease-out',
+      ...style
+    }} />
+  );
+
   const styles = {
     container: {
       minHeight: '100vh',
@@ -958,6 +1005,8 @@ const CardGenerator = () => {
     contentSection: {
       padding: '100px 20px',
       borderTop: '1px solid #e2e8f0',
+      position: 'relative',
+      overflow: 'hidden',
     },
     contentMaxWidth: {
       maxWidth: '1000px',
@@ -1014,6 +1063,27 @@ const CardGenerator = () => {
       <PresetsModal />
       {/* Hero Section */}
       <section style={styles.hero}>
+        <DecorativeShape 
+          color="#6366f1"
+          style={{
+            width: '600px',
+            height: '600px',
+            top: '-200px',
+            right: '-200px',
+            transform: `translateY(${scrollY * 0.2}px) rotate(${scrollY * 0.02}deg)`,
+          }}
+        />
+        <Blob
+          color="#8b5cf640"
+          style={{
+            width: '500px',
+            height: '500px',
+            top: '10%',
+            left: '-100px',
+            transform: `translateY(${scrollY * -0.1}px) rotate(${scrollY * 0.03}deg)`,
+          }}
+          path="M47.7,-51.1C58.9,-34.9,63.3,-17.4,62.1,-1.2C60.9,15,54.1,30,42.9,39.4C31.7,48.8,15.8,52.6,-1.9,54.5C-19.7,56.4,-39.4,56.4,-51.1,47C-62.8,37.6,-66.5,18.8,-63.1,2.5C-59.6,-13.8,-49,-27.7,-37.3,-43.9C-25.7,-60.1,-12.8,-78.7,2.3,-81C17.4,-83.3,34.8,-69.3,47.7,-51.1Z"
+        />
         <div style={styles.heroContent}>
           <h1 style={styles.title}>Create Engaging Retro Cards in Seconds</h1>
           <p style={styles.subtitle}>
@@ -1342,8 +1412,29 @@ If our project was a movie, it would be _____"
         </div>
       </section>
 
-      {/* Content Sections for SEO */}
+      {/* Content Sections */}
       <section style={styles.contentSection}>
+        <DecorativeShape 
+          color="#3b82f6"
+          style={{
+            width: '700px',
+            height: '700px',
+            top: '10%',
+            right: '-300px',
+            transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * 0.02}deg)`,
+          }}
+        />
+        <Blob
+          color="#6366f130"
+          style={{
+            width: '400px',
+            height: '400px',
+            bottom: '10%',
+            left: '-100px',
+            transform: `translateY(${scrollY * -0.1}px) rotate(${scrollY * -0.03}deg)`,
+          }}
+          path="M42.7,-57.2C56.8,-45.9,70.8,-31.8,75.3,-14.9C79.9,2,75,21.7,65.1,37.9C55.1,54.1,40.1,66.7,23.4,71.1C6.7,75.5,-11.8,71.6,-27.9,64.3C-44,57,-57.8,46.2,-65.4,31.6C-73,17,-74.4,-6.4,-69.1,-23C-63.8,-39.6,-51.8,-53.4,-38.1,-60.1C-24.4,-66.9,-9,-66.6,1.5,-68.8C17.8,-71.1,35.5,-75.9,47.3,-69.4Z"
+        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Why Use Custom Retro Cards?</h2>
           <p style={styles.sectionText}>
@@ -1360,6 +1451,27 @@ If our project was a movie, it would be _____"
       </section>
 
       <section style={{ ...styles.contentSection, background: '#f7fafc' }}>
+        <Blob
+          color="#8b5cf630"
+          style={{
+            width: '600px',
+            height: '600px',
+            top: '20%',
+            right: '-200px',
+            transform: `translateY(${scrollY * 0.12}px) rotate(${scrollY * 0.02}deg)`,
+          }}
+          path="M54,-67.1C69.2,-55.3,80.5,-37.5,84.2,-18.1C87.9,1.3,84,22.3,74.8,40.2C65.6,58.1,51.1,72.9,33.7,78.9C16.3,84.9,-3.9,82,-22.4,75.1C-40.9,68.2,-57.7,57.3,-67.6,41.8C-77.5,26.4,-80.5,6.4,-77.1,-12.2C-73.7,-30.8,-63.9,-47.9,-49.7,-60C-35.5,-72,-17.8,-78.9,1.1,-80.2C20,-81.5,39.9,-77.2,54,-67.1Z"
+        />
+        <DecorativeShape 
+          color="#6366f1"
+          style={{
+            width: '500px',
+            height: '500px',
+            bottom: '-100px',
+            left: '-200px',
+            transform: `translateY(${scrollY * -0.1}px)`,
+          }}
+        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Perfect for Every Retro Format</h2>
           <div style={styles.featureGrid}>
@@ -1392,6 +1504,27 @@ If our project was a movie, it would be _____"
       </section>
 
       <section style={styles.contentSection}>
+        <Blob
+          color="#8b5cf630"
+          style={{
+            width: '700px',
+            height: '700px',
+            top: '20%',
+            right: '-250px',
+            transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * 0.02}deg)`,
+          }}
+          path="M54,-67.1C69.2,-55.3,80.5,-37.5,84.2,-18.1C87.9,1.3,84,22.3,74.8,40.2C65.6,58.1,51.1,72.9,33.7,78.9C16.3,84.9,-3.9,82,-22.4,75.1C-40.9,68.2,-57.7,57.3,-67.6,41.8C-77.5,26.4,-80.5,6.4,-77.1,-12.2C-73.7,-30.8,-63.9,-47.9,-49.7,-60C-35.5,-72,-17.8,-78.9,1.1,-80.2C20,-81.5,39.9,-77.2,54,-67.1Z"
+        />
+        <DecorativeShape 
+          color="#6366f1"
+          style={{
+            width: '400px',
+            height: '400px',
+            bottom: '-100px',
+            left: '-100px',
+            transform: `translateY(${scrollY * -0.1}px)`,
+          }}
+        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>How to Run an Engaging Card-Based Retro</h2>
           <p style={styles.sectionText}>
@@ -1414,6 +1547,27 @@ If our project was a movie, it would be _____"
       </section>
 
       <section style={{ ...styles.contentSection, background: '#f7fafc' }}>
+        <Blob
+          color="#6366f130"
+          style={{
+            width: '600px',
+            height: '600px',
+            top: '-100px',
+            left: '-200px',
+            transform: `translateY(${scrollY * 0.1}px) rotate(${scrollY * -0.02}deg)`,
+          }}
+          path="M47.3,-69.4C60.9,-62.3,71.1,-47.8,76.3,-31.8C81.4,-15.8,81.5,1.7,77.1,17.7C72.8,33.7,64,48.2,51.6,58.8C39.2,69.4,23.1,76.1,6.2,78.1C-10.7,80,-28.4,77.2,-43.4,68.8C-58.3,60.4,-70.5,46.4,-76.9,29.7C-83.3,13,-83.9,-6.4,-78.1,-23C-72.3,-39.6,-60.1,-53.4,-45.7,-60.1C-31.3,-66.9,-14.8,-66.6,1.5,-68.8C17.8,-71.1,35.5,-75.9,47.3,-69.4Z"
+        />
+        <DecorativeShape 
+          color="#3b82f6"
+          style={{
+            width: '500px',
+            height: '500px',
+            bottom: '-150px',
+            right: '-150px',
+            transform: `translateY(${scrollY * -0.12}px)`,
+          }}
+        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Customization Options</h2>
           <p style={styles.sectionText}>
@@ -1430,6 +1584,27 @@ If our project was a movie, it would be _____"
       </section>
 
       <section style={styles.contentSection}>
+        <Blob
+          color="#8b5cf630"
+          style={{
+            width: '700px',
+            height: '700px',
+            top: '20%',
+            right: '-250px',
+            transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * 0.02}deg)`,
+          }}
+          path="M54,-67.1C69.2,-55.3,80.5,-37.5,84.2,-18.1C87.9,1.3,84,22.3,74.8,40.2C65.6,58.1,51.1,72.9,33.7,78.9C16.3,84.9,-3.9,82,-22.4,75.1C-40.9,68.2,-57.7,57.3,-67.6,41.8C-77.5,26.4,-80.5,6.4,-77.1,-12.2C-73.7,-30.8,-63.9,-47.9,-49.7,-60C-35.5,-72,-17.8,-78.9,1.1,-80.2C20,-81.5,39.9,-77.2,54,-67.1Z"
+        />
+        <DecorativeShape 
+          color="#6366f1"
+          style={{
+            width: '400px',
+            height: '400px',
+            bottom: '-100px',
+            left: '-100px',
+            transform: `translateY(${scrollY * -0.1}px)`,
+          }}
+        />
         <div style={styles.contentMaxWidth}>
           <h2 style={styles.sectionTitle}>Start Creating Better Retros Today</h2>
           <p style={styles.sectionText}>
