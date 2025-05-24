@@ -779,6 +779,61 @@ const CardGenerator = () => {
     }} />
   );
 
+  const FloatingShape = ({ style }) => {
+    const [rotation, setRotation] = useState(0);
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setRotation(prev => (prev + 1) % 360);
+      }, 50);
+      return () => clearInterval(interval);
+    }, []);
+
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          width: '40px',
+          height: '40px',
+          background: 'linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)',
+          borderRadius: '8px',
+          transform: `rotate(${rotation}deg)`,
+          opacity: 0.1,
+          transition: 'all 0.3s ease',
+          animation: 'float 6s ease-in-out infinite',
+          ...style,
+        }}
+      />
+    );
+  };
+
+  const WavePattern = ({ color = '#3b82f6', style }) => (
+    <div
+      style={{
+        position: 'absolute',
+        width: '100%',
+        height: '100px',
+        overflow: 'hidden',
+        ...style,
+      }}
+    >
+    </div>
+  );
+
+  const GradientCircle = ({ color = '#3b82f6', style }) => (
+    <div
+      style={{
+        position: 'absolute',
+        width: '300px',
+        height: '300px',
+        background: `radial-gradient(circle, ${color}20 0%, ${color}05 70%, transparent 100%)`,
+        borderRadius: '50%',
+        transition: 'all 0.3s ease',
+        ...style,
+      }}
+    />
+  );
+
   const styles = {
     container: {
       minHeight: '100vh',
@@ -833,13 +888,16 @@ const CardGenerator = () => {
       padding: '40px 20px',
     },
     settingsCard: {
-      backgroundColor: '#fff',
+      backgroundColor: 'rgba(255, 255, 255, 0.9)',
       borderRadius: '24px',
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
       padding: '40px',
       marginBottom: '40px',
       transition: 'all 0.3s ease',
       border: '1px solid #e2e8f0',
+      backdropFilter: 'blur(10px)',
+      position: 'relative',
+      overflow: 'hidden',
     },
     settingsTitle: {
       fontSize: '28px',
@@ -923,8 +981,19 @@ const CardGenerator = () => {
       fontSize: '16px',
       fontWeight: '600',
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       boxShadow: '0 4px 15px rgba(59, 130, 246, 0.3)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: '0 8px 25px rgba(59, 130, 246, 0.4)',
+        background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+      },
+      '&:active': {
+        transform: 'translateY(1px)',
+        boxShadow: '0 2px 10px rgba(59, 130, 246, 0.3)',
+      },
     },
     buttonDisabled: {
       background: 'linear-gradient(135deg, #cbd5e0 0%, #94a3b8 100%)',
@@ -932,17 +1001,27 @@ const CardGenerator = () => {
       boxShadow: 'none',
     },
     buttonSecondary: {
-    marginTop: '16px',
+      marginTop: '16px',
       padding: '12px 24px',
-      background: '#fff',
+      background: 'rgba(255, 255, 255, 0.9)',
       color: '#475569',
       border: '2px solid #e2e8f0',
       borderRadius: '16px',
       fontSize: '14px',
       fontWeight: '600',
       cursor: 'pointer',
-      transition: 'all 0.2s ease',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       backdropFilter: 'blur(10px)',
+      '&:hover': {
+        background: '#fff',
+        borderColor: '#cbd5e0',
+        transform: 'translateY(-2px)',
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+      },
+      '&:active': {
+        transform: 'translateY(1px)',
+        boxShadow: 'none',
+      },
     },
     cardContainer: {
       overflowX: 'auto',
@@ -1007,6 +1086,10 @@ const CardGenerator = () => {
       borderTop: '1px solid #e2e8f0',
       position: 'relative',
       overflow: 'hidden',
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+      '&:nth-child(even)': {
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+      },
     },
     contentMaxWidth: {
       maxWidth: '1000px',
@@ -1034,11 +1117,29 @@ const CardGenerator = () => {
     },
     featureCard: {
       padding: '40px',
-      background: '#fff',
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
       borderRadius: '24px',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       border: '1px solid #e2e8f0',
       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&:hover': {
+        transform: 'translateY(-8px) scale(1.02)',
+        boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
+        background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)',
+        borderColor: '#bfdbfe',
+      },
+      '&:hover::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%)',
+        pointerEvents: 'none',
+      },
     },
     featureIcon: {
       fontSize: '48px',
@@ -1056,7 +1157,131 @@ const CardGenerator = () => {
       lineHeight: '1.6',
       color: '#475569',
     },
+    featureHighlight: {
+      padding: '32px',
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%)',
+      borderRadius: '16px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06)',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      position: 'relative',
+      overflow: 'hidden',
+      backdropFilter: 'blur(10px)',
+      '&:hover': {
+        transform: 'translateY(-8px) scale(1.02)',
+        boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(239,246,255,0.95) 100%)',
+      },
+      '&:hover::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%)',
+        pointerEvents: 'none',
+      },
+    },
+    guideStep: {
+      padding: '24px',
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+      borderRadius: '16px',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      '&:hover': {
+        transform: 'translateY(-8px) scale(1.02)',
+        boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
+        background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)',
+      },
+      '&:hover::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%)',
+        pointerEvents: 'none',
+      },
+    },
+    guideTitle: {
+      fontSize: '20px',
+      fontWeight: '600',
+      color: '#1a202c',
+      marginBottom: '16px',
+    },
+    guideText: {
+      fontSize: '16px',
+      lineHeight: '1.6',
+      color: '#4a5568',
+    },
+    customizationCard: {
+      padding: '32px',
+      background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+      borderRadius: '16px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      '&:hover': {
+        transform: 'translateY(-8px) scale(1.02)',
+        boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.15)',
+        background: 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)',
+      },
+      '&:hover::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%)',
+        pointerEvents: 'none',
+      },
+    },
+    customizationTitle: {
+      fontSize: '22px',
+      fontWeight: '600',
+      color: '#1a202c',
+      marginBottom: '20px',
+    },
+    customizationList: {
+      listStyle: 'none',
+      padding: '0',
+      margin: '0',
+      '& li': {
+        padding: '8px 0',
+        color: '#4a5568',
+        display: 'flex',
+        alignItems: 'center',
+        '&:before': {
+          content: '"✓"',
+          marginRight: '12px',
+          color: '#3b82f6',
+          fontWeight: 'bold',
+        },
+      },
+    },
   };
+
+  // Agregar estilos de animación global
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes float {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+      }
+      100% {
+        transform: translateY(0px) rotate(360deg);
+      }
+    }
+  `;
+  document.head.appendChild(style);
 
   return (
     <div style={styles.container}>
@@ -1084,12 +1309,85 @@ const CardGenerator = () => {
           }}
           path="M47.7,-51.1C58.9,-34.9,63.3,-17.4,62.1,-1.2C60.9,15,54.1,30,42.9,39.4C31.7,48.8,15.8,52.6,-1.9,54.5C-19.7,56.4,-39.4,56.4,-51.1,47C-62.8,37.6,-66.5,18.8,-63.1,2.5C-59.6,-13.8,-49,-27.7,-37.3,-43.9C-25.7,-60.1,-12.8,-78.7,2.3,-81C17.4,-83.3,34.8,-69.3,47.7,-51.1Z"
         />
+        <FloatingShape 
+          style={{
+            top: '20%',
+            right: '15%',
+            transform: `rotate(${45 + scrollY * 0.1}deg)`,
+          }}
+        />
+        <FloatingShape 
+          style={{
+            bottom: '30%',
+            left: '10%',
+            transform: `rotate(${-45 + scrollY * 0.1}deg)`,
+          }}
+        />
+        <WavePattern 
+          style={{
+            bottom: 0,
+            transform: `translateY(${scrollY * 0.1}px)`,
+          }}
+        />
         <div style={styles.heroContent}>
-          <h1 style={styles.title}>Create Engaging Retro Cards in Seconds</h1>
+          <h1 style={styles.title}>Elevate Your Retrospectives with Custom Cards</h1>
           <p style={styles.subtitle}>
-            Transform your retrospectives with custom Cards Against Humanity-style prompts. 
-            Perfect for breaking the ice, sparking discussions, and making team meetings more fun and productive.
+            Transform team discussions into engaging experiences with our Cards Against Humanity-inspired generator. 
+            Create powerful conversation starters that spark meaningful insights and make retrospectives memorable.
           </p>
+        </div>
+      </section>
+
+      {/* Feature Highlights Section - Before App */}
+      <section style={{
+        ...styles.contentSection,
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        paddingTop: '60px',
+        paddingBottom: '60px',
+      }}>
+        <FloatingShape 
+          style={{
+            top: '10%',
+            right: '5%',
+            transform: 'rotate(30deg)',
+          }}
+        />
+        <FloatingShape 
+          style={{
+            bottom: '15%',
+            left: '8%',
+            transform: 'rotate(-15deg)',
+          }}
+        />
+        <div style={styles.contentMaxWidth}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '32px',
+            textAlign: 'center',
+          }}>
+            <div style={styles.featureHighlight}>
+              <span style={{ fontSize: '32px' }}>🎯</span>
+              <h3 style={styles.featureTitle}>Purposeful Prompts</h3>
+              <p style={styles.featureText}>
+                Carefully crafted templates for sprint reviews, team building, and innovation sessions
+              </p>
+            </div>
+            <div style={styles.featureHighlight}>
+              <span style={{ fontSize: '32px' }}>✨</span>
+              <h3 style={styles.featureTitle}>Beautiful Design</h3>
+              <p style={styles.featureText}>
+                Professional-grade cards with customizable colors, fonts, and themes
+              </p>
+            </div>
+            <div style={styles.featureHighlight}>
+              <span style={{ fontSize: '32px' }}>💾</span>
+              <h3 style={styles.featureTitle}>Save & Reuse</h3>
+              <p style={styles.featureText}>
+                Create and save your custom templates for future sessions
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1100,7 +1398,7 @@ const CardGenerator = () => {
       }}>
         <div style={styles.maxWidth}>
           <div style={styles.settingsCard}>
-            <h2 style={styles.settingsTitle}>Start Creating Your Retro Cards</h2>
+            <h2 style={styles.settingsTitle}>Design Your Cards</h2>
             
             <div style={{ marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
               <div style={{ flex: 1 }}>
@@ -1110,9 +1408,9 @@ const CardGenerator = () => {
                 <textarea
                   value={cardTexts}
                   onChange={(e) => setCardTexts(e.target.value)}
-                  placeholder="Our biggest win this sprint was _____
-The team's superpower is _____
-If our project was a movie, it would be _____"
+                  placeholder="Our biggest achievement this sprint was _____
+The unexpected challenge we overcame was _____
+If our team dynamic was a movie genre, it would be _____"
                   style={{
                     ...styles.textarea,
                     marginBottom: '48px'
@@ -1412,207 +1710,273 @@ If our project was a movie, it would be _____"
         </div>
       </section>
 
-      {/* Content Sections */}
-      <section style={styles.contentSection}>
-        <DecorativeShape 
+      {/* Value Proposition Section */}
+      <section style={{
+        ...styles.contentSection,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <GradientCircle
           color="#3b82f6"
           style={{
-            width: '700px',
-            height: '700px',
-            top: '10%',
-            right: '-300px',
-            transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * 0.02}deg)`,
+            top: '-150px',
+            right: '-150px',
+            transform: `scale(${1 + scrollY * 0.001})`,
           }}
         />
-        <Blob
-          color="#6366f130"
+        <GradientCircle
+          color="#8b5cf6"
           style={{
-            width: '400px',
-            height: '400px',
-            bottom: '10%',
+            bottom: '-100px',
             left: '-100px',
-            transform: `translateY(${scrollY * -0.1}px) rotate(${scrollY * -0.03}deg)`,
+            transform: `scale(${1 + scrollY * 0.001})`,
           }}
-          path="M42.7,-57.2C56.8,-45.9,70.8,-31.8,75.3,-14.9C79.9,2,75,21.7,65.1,37.9C55.1,54.1,40.1,66.7,23.4,71.1C6.7,75.5,-11.8,71.6,-27.9,64.3C-44,57,-57.8,46.2,-65.4,31.6C-73,17,-74.4,-6.4,-69.1,-23C-63.8,-39.6,-51.8,-53.4,-38.1,-60.1C-24.4,-66.9,-9,-66.6,1.5,-68.8C17.8,-71.1,35.5,-75.9,47.3,-69.4Z"
+        />
+        <FloatingShape 
+          style={{
+            top: '20%',
+            right: '10%',
+            transform: `rotate(${20 + scrollY * 0.05}deg)`,
+          }}
         />
         <div style={styles.contentMaxWidth}>
-          <h2 style={styles.sectionTitle}>Why Use Custom Retro Cards?</h2>
+          <h2 style={styles.sectionTitle}>Transform Team Discussions</h2>
           <p style={styles.sectionText}>
-            Traditional retrospectives can sometimes feel repetitive or fail to engage all team members. 
-            By introducing custom retro cards inspired by Cards Against Humanity's format, you create 
-            a playful atmosphere that encourages honest feedback and creative thinking.
+            Traditional retrospectives often struggle to maintain engagement and generate honest feedback. 
+            Our Cards Against Humanity-inspired format creates a safe space for open communication through 
+            creative and thought-provoking prompts.
           </p>
           <p style={styles.sectionText}>
-            These cards work as conversation starters, helping teams break through communication barriers 
-            and discuss both successes and challenges in a fun, non-threatening way. The fill-in-the-blank 
-            format makes it easy for everyone to participate, regardless of their communication style.
+            By combining professional facilitation techniques with an engaging card format, teams naturally 
+            open up about both successes and challenges. The fill-in-the-blank structure makes it easy for 
+            everyone to participate, regardless of their communication style.
           </p>
         </div>
       </section>
 
-      <section style={{ ...styles.contentSection, background: '#f7fafc' }}>
-        <Blob
-          color="#8b5cf630"
+      {/* Use Cases Section */}
+      <section style={{
+        ...styles.contentSection,
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <WavePattern 
           style={{
-            width: '600px',
-            height: '600px',
-            top: '20%',
-            right: '-200px',
-            transform: `translateY(${scrollY * 0.12}px) rotate(${scrollY * 0.02}deg)`,
+            top: 0,
+            transform: 'rotate(180deg)',
           }}
-          path="M54,-67.1C69.2,-55.3,80.5,-37.5,84.2,-18.1C87.9,1.3,84,22.3,74.8,40.2C65.6,58.1,51.1,72.9,33.7,78.9C16.3,84.9,-3.9,82,-22.4,75.1C-40.9,68.2,-57.7,57.3,-67.6,41.8C-77.5,26.4,-80.5,6.4,-77.1,-12.2C-73.7,-30.8,-63.9,-47.9,-49.7,-60C-35.5,-72,-17.8,-78.9,1.1,-80.2C20,-81.5,39.9,-77.2,54,-67.1Z"
         />
-        <DecorativeShape 
+        <WavePattern 
+          style={{
+            bottom: 0,
+          }}
+        />
+        <GradientCircle
           color="#6366f1"
           style={{
-            width: '500px',
-            height: '500px',
-            bottom: '-100px',
-            left: '-200px',
-            transform: `translateY(${scrollY * -0.1}px)`,
+            top: '30%',
+            right: '5%',
+            transform: `scale(${1 + scrollY * 0.001})`,
           }}
         />
         <div style={styles.contentMaxWidth}>
-          <h2 style={styles.sectionTitle}>Perfect for Every Retro Format</h2>
+          <h2 style={styles.sectionTitle}>Versatile Applications</h2>
           <div style={styles.featureGrid}>
             <div style={styles.featureCard}>
-              <div style={styles.featureIcon}>🚀</div>
+              <div style={styles.featureIcon}>📊</div>
               <h3 style={styles.featureTitle}>Sprint Retrospectives</h3>
               <p style={styles.featureText}>
-                Create cards that help teams reflect on sprint achievements, blockers, and improvements. 
-                Examples: "Our MVP of the sprint was _____" or "The biggest surprise this sprint was _____"
+                Generate insightful discussions about sprint outcomes, team dynamics, and process improvements. 
+                Perfect for Scrum and Agile teams looking to enhance their retrospective sessions.
               </p>
             </div>
             <div style={styles.featureCard}>
-              <div style={styles.featureIcon}>🎯</div>
-              <h3 style={styles.featureTitle}>Project Post-Mortems</h3>
-              <p style={styles.featureText}>
-                Design thoughtful prompts for deeper project analysis. Try: "If we could redo one thing, 
-                it would be _____" or "The unsung hero of this project was _____"
-              </p>
-            </div>
-            <div style={styles.featureCard}>
-              <div style={styles.featureIcon}>🌟</div>
+              <div style={styles.featureIcon}>🤝</div>
               <h3 style={styles.featureTitle}>Team Building</h3>
               <p style={styles.featureText}>
-                Foster team bonding with lighthearted prompts. Use: "Our team's secret weapon is _____" 
-                or "If our team had a theme song, it would be _____"
+                Create memorable ice-breakers and team bonding activities. Build stronger connections 
+                through shared experiences and storytelling.
+              </p>
+            </div>
+            <div style={styles.featureCard}>
+              <div style={styles.featureIcon}>💡</div>
+              <h3 style={styles.featureTitle}>Innovation Workshops</h3>
+              <p style={styles.featureText}>
+                Spark creative thinking and generate innovative ideas. Break through conventional thinking 
+                patterns with unexpected prompts and perspectives.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section style={styles.contentSection}>
-        <Blob
-          color="#8b5cf630"
+      {/* Implementation Guide */}
+      <section style={{
+        ...styles.contentSection,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <FloatingShape 
           style={{
-            width: '700px',
-            height: '700px',
-            top: '20%',
-            right: '-250px',
-            transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * 0.02}deg)`,
-          }}
-          path="M54,-67.1C69.2,-55.3,80.5,-37.5,84.2,-18.1C87.9,1.3,84,22.3,74.8,40.2C65.6,58.1,51.1,72.9,33.7,78.9C16.3,84.9,-3.9,82,-22.4,75.1C-40.9,68.2,-57.7,57.3,-67.6,41.8C-77.5,26.4,-80.5,6.4,-77.1,-12.2C-73.7,-30.8,-63.9,-47.9,-49.7,-60C-35.5,-72,-17.8,-78.9,1.1,-80.2C20,-81.5,39.9,-77.2,54,-67.1Z"
-        />
-        <DecorativeShape 
-          color="#6366f1"
-          style={{
-            width: '400px',
-            height: '400px',
-            bottom: '-100px',
-            left: '-100px',
-            transform: `translateY(${scrollY * -0.1}px)`,
+            top: '15%',
+            left: '5%',
+            transform: `rotate(${-15 + scrollY * 0.05}deg)`,
           }}
         />
-        <div style={styles.contentMaxWidth}>
-          <h2 style={styles.sectionTitle}>How to Run an Engaging Card-Based Retro</h2>
-          <p style={styles.sectionText}>
-            <strong>1. Prepare Your Cards:</strong> Create 5-10 prompts tailored to your team's current 
-            situation. Mix serious reflection questions with lighter, fun prompts to maintain energy.
-          </p>
-          <p style={styles.sectionText}>
-            <strong>2. Set the Stage:</strong> Print the cards or share them digitally. Explain that 
-            this is a safe space for honest feedback wrapped in a fun format.
-          </p>
-          <p style={styles.sectionText}>
-            <strong>3. Facilitate Discussion:</strong> Have team members take turns drawing cards and 
-            completing the prompts. Encourage elaboration and group discussion on each response.
-          </p>
-          <p style={styles.sectionText}>
-            <strong>4. Capture Insights:</strong> Document key themes and action items that emerge from 
-            the card discussions. The playful format often reveals deeper insights than traditional formats.
-          </p>
-        </div>
-      </section>
-
-      <section style={{ ...styles.contentSection, background: '#f7fafc' }}>
-        <Blob
-          color="#6366f130"
+        <FloatingShape 
           style={{
-            width: '600px',
-            height: '600px',
-            top: '-100px',
-            left: '-200px',
-            transform: `translateY(${scrollY * 0.1}px) rotate(${scrollY * -0.02}deg)`,
+            bottom: '20%',
+            right: '8%',
+            transform: `rotate(${30 + scrollY * 0.05}deg)`,
           }}
-          path="M47.3,-69.4C60.9,-62.3,71.1,-47.8,76.3,-31.8C81.4,-15.8,81.5,1.7,77.1,17.7C72.8,33.7,64,48.2,51.6,58.8C39.2,69.4,23.1,76.1,6.2,78.1C-10.7,80,-28.4,77.2,-43.4,68.8C-58.3,60.4,-70.5,46.4,-76.9,29.7C-83.3,13,-83.9,-6.4,-78.1,-23C-72.3,-39.6,-60.1,-53.4,-45.7,-60.1C-31.3,-66.9,-14.8,-66.6,1.5,-68.8C17.8,-71.1,35.5,-75.9,47.3,-69.4Z"
         />
-        <DecorativeShape 
+        <GradientCircle
           color="#3b82f6"
           style={{
-            width: '500px',
-            height: '500px',
             bottom: '-150px',
             right: '-150px',
-            transform: `translateY(${scrollY * -0.12}px)`,
+            transform: `scale(${1 + scrollY * 0.001})`,
           }}
         />
         <div style={styles.contentMaxWidth}>
-          <h2 style={styles.sectionTitle}>Customization Options</h2>
-          <p style={styles.sectionText}>
-            Our retro card generator offers complete customization to match your team's style and needs:
-          </p>
-          <ul style={{ ...styles.sectionText, paddingLeft: '24px' }}>
-            <li>Choose between classic black cards, white cards, or create custom color schemes</li>
-            <li>Add your team or company name to brand the cards</li>
-            <li>Select from different icon styles or add custom emojis</li>
-            <li>Adjust the response space for longer or shorter answers</li>
-            <li>Download individual cards or entire sets for printing or digital sharing</li>
-          </ul>
+          <h2 style={styles.sectionTitle}>Facilitate Effective Sessions</h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '32px',
+            marginTop: '40px'
+          }}>
+            <div style={styles.guideStep}>
+              <h3 style={styles.guideTitle}>1. Preparation</h3>
+              <p style={styles.guideText}>
+                Select or create 5-10 targeted prompts for your session's objectives. 
+                Mix reflection questions with creative prompts to maintain energy and engagement.
+              </p>
+            </div>
+            <div style={styles.guideStep}>
+              <h3 style={styles.guideTitle}>2. Facilitation</h3>
+              <p style={styles.guideText}>
+                Guide participants through each prompt, allowing time for individual reflection 
+                before group discussion. Create a safe space for honest sharing.
+              </p>
+            </div>
+            <div style={styles.guideStep}>
+              <h3 style={styles.guideTitle}>3. Action Items</h3>
+              <p style={styles.guideText}>
+                Capture key insights and convert discussions into actionable improvements. 
+                Document patterns and themes that emerge from the responses.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section style={styles.contentSection}>
-        <Blob
-          color="#8b5cf630"
+      {/* Customization Options */}
+      <section style={{
+        ...styles.contentSection,
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <WavePattern 
           style={{
-            width: '700px',
-            height: '700px',
-            top: '20%',
-            right: '-250px',
-            transform: `translateY(${scrollY * 0.15}px) rotate(${scrollY * 0.02}deg)`,
+            top: 0,
+            transform: 'rotate(180deg)',
           }}
-          path="M54,-67.1C69.2,-55.3,80.5,-37.5,84.2,-18.1C87.9,1.3,84,22.3,74.8,40.2C65.6,58.1,51.1,72.9,33.7,78.9C16.3,84.9,-3.9,82,-22.4,75.1C-40.9,68.2,-57.7,57.3,-67.6,41.8C-77.5,26.4,-80.5,6.4,-77.1,-12.2C-73.7,-30.8,-63.9,-47.9,-49.7,-60C-35.5,-72,-17.8,-78.9,1.1,-80.2C20,-81.5,39.9,-77.2,54,-67.1Z"
         />
+        <GradientCircle
+          color="#8b5cf6"
+          style={{
+            top: '20%',
+            left: '10%',
+            transform: `scale(${1 + scrollY * 0.001})`,
+          }}
+        />
+        <div style={styles.contentMaxWidth}>
+          <h2 style={styles.sectionTitle}>Professional Customization</h2>
+          <div style={styles.featureGrid}>
+            <div style={styles.customizationCard}>
+              <h3 style={styles.customizationTitle}>Visual Design</h3>
+              <ul style={styles.customizationList}>
+                <li>Classic black or white cards</li>
+                <li>Custom color schemes</li>
+                <li>Gradient backgrounds</li>
+                <li>Professional typography</li>
+              </ul>
+            </div>
+            <div style={styles.customizationCard}>
+              <h3 style={styles.customizationTitle}>Branding</h3>
+              <ul style={styles.customizationList}>
+                <li>Company name integration</li>
+                <li>Custom icons and emojis</li>
+                <li>Team-specific templates</li>
+                <li>Saved configurations</li>
+              </ul>
+            </div>
+            <div style={styles.customizationCard}>
+              <h3 style={styles.customizationTitle}>Export Options</h3>
+              <ul style={styles.customizationList}>
+                <li>High-resolution PNG export</li>
+                <li>Individual or batch download</li>
+                <li>Print-ready format</li>
+                <li>Digital sharing capability</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section style={{
+        ...styles.contentSection,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
         <DecorativeShape 
           color="#6366f1"
           style={{
             width: '400px',
             height: '400px',
-            bottom: '-100px',
-            left: '-100px',
-            transform: `translateY(${scrollY * -0.1}px)`,
+            bottom: '-200px',
+            right: '-200px',
+            transform: `translateY(${scrollY * 0.1}px) rotate(${scrollY * 0.02}deg)`,
           }}
         />
+        <Blob
+          color="#8b5cf640"
+          style={{
+            width: '300px',
+            height: '300px',
+            top: '20%',
+            left: '-100px',
+            transform: `translateY(${scrollY * -0.05}px) rotate(${scrollY * 0.02}deg)`,
+          }}
+          path="M47.7,-51.1C58.9,-34.9,63.3,-17.4,62.1,-1.2C60.9,15,54.1,30,42.9,39.4C31.7,48.8,15.8,52.6,-1.9,54.5C-19.7,56.4,-39.4,56.4,-51.1,47C-62.8,37.6,-66.5,18.8,-63.1,2.5C-59.6,-13.8,-49,-27.7,-37.3,-43.9C-25.7,-60.1,-12.8,-78.7,2.3,-81C17.4,-83.3,34.8,-69.3,47.7,-51.1Z"
+        />
         <div style={styles.contentMaxWidth}>
-          <h2 style={styles.sectionTitle}>Start Creating Better Retros Today</h2>
+          <h2 style={styles.sectionTitle}>Start Creating Impactful Retrospectives</h2>
           <p style={styles.sectionText}>
-            Ready to transform your team retrospectives? Simply start typing your prompts in the 
-            generator above, customize the appearance to match your team's personality, and download 
-            your cards. Whether you're facilitating remote or in-person retros, these cards will help 
-            create memorable, productive sessions that your team will actually look forward to.
+            Whether you're facilitating remote or in-person sessions, our card generator helps create 
+            memorable retrospectives that teams actually look forward to. Begin with our templates or 
+            create your own custom cards to match your team's unique culture and objectives.
           </p>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: '40px'
+          }}>
+            <button
+              onClick={() => document.querySelector('textarea').focus()}
+              style={{
+                ...styles.button,
+                maxWidth: '300px',
+                margin: '0 auto'
+              }}
+            >
+              Create Your First Card
+            </button>
+          </div>
         </div>
       </section>
     </div>
